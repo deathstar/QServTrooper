@@ -1,0 +1,80 @@
+body {
+	font-family: Arial, sans-serif;
+	font-size: 12px;
+	color: #333;
+	background: #fff;
+}
+a {
+	color: green;
+	text-decoration: underline;
+}
+a:hover {
+	text-decoration: none;
+}
+h1 {
+	color: green;
+}
+h2 {
+	color: darkgreen;
+	border-bottom: 1px solid #ccc;
+	font-size: 14px;
+}
+table {
+	border: 1px solid #ddd;
+	border-collapse: collapse;
+}
+td {
+	border: 1px solid #ddd;
+	border-collapse: collapse;
+	text-align: left;
+	vertical-align: middle;
+	padding: 1px 4px 1px 4px;
+	whitespace: nowrap;
+}
+td img {
+	vertical-align: middle;
+}
+th {
+	background: #ddd;
+	border-collapse: collapse;
+	text-align: left;
+	font-weight: bold;
+}
+.privilege0 {
+}
+.privilege1 {
+	color: green;
+}
+.privilege2 {
+	color: darkorange;
+}
+
+.color0 { color: #108030 } /* 0 = green */
+.color1 { color: #4466dd } /* 1 = blue */
+.color2 { color: #ffbb3e } /* 2 = yellow */
+.color3 { color: #ff3030 } /* 3 = red */
+.color4 { color: #808080 } /* 4 = gray */
+.color5 { color: #802b9f } /* 5 = magenta */
+.color6 { color: #fc800e } /* 6 = orange */
+
+.spec {
+	color: #999;
+}
+.dead {
+	color: #666;
+}
+#links { float: right; }
+
+.left { float: left; }
+.right { float: right; }
+.clear { clear: both; }
+
+#footer {
+	padding-top: 2px;
+	border-top: 1px solid #ccc;
+	margin-top: 20px;
+	font-size: 11px;
+}
+#footer, #footer a {
+	color: #888;
+}
