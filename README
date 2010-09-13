@@ -1,0 +1,16 @@
+QServ - a modified version of Vampi's base code
+===============================================
+
+For 2010 "Justice" edition.
+
+Install instructions: 
+
+[MAC/LINUX]
+open terminal
+git clone git://github.com/deathstar/QServ.git
+cd QServ
+make 
+
+[WINDOWS]
+QServ has not been ported to windows yet
+
