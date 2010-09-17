@@ -1566,7 +1566,7 @@ namespace server
 			                actor->state.teamkills++;
 			                target->state.deaths++;
 			              
-			                defformatstring(msg)("\f0%s \f7fragged a teammate: \f0%s\f7", colorname(actor), colorname(target));
+			                defformatstring(msg)("\f0%s \f7fragged his teammate \f0%s\f7", colorname(actor), colorname(target));
 						    sendservmsg(msg);
 			            }
             
