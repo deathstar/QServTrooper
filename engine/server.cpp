@@ -723,7 +723,7 @@ void serverhost_process_event(ENetEvent & event) {
 			outf(2 | OUT_NOGAME, "IP: %s", c.hostname);
 	
 
-            int reason = server::clientconnect(c.num, c.peer->address.host);
+            int reason = server::clientconnect(c.num, c.peer->address.host, c.hostname);
             if(!reason) nonlocalclients++;
             else disconnect_client(c.num, reason);
             break;

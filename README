@@ -3,6 +3,10 @@ QServ - a modified version of Vampi's base code
 
 For 2010 "Justice" edition.
 
+Requirements:
+git 
+make
+
 Install instructions: 
 
 [MAC/LINUX]

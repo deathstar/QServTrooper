@@ -78,9 +78,9 @@ function update_info() {
 
 						var html = new Array();
 						html.push('<ul>');
-						html.push('<li>Server name: '+convert_cube_string(st.serverdesc)+'</li>');
-						html.push('<li>Message of the day: '+convert_cube_string(st.servermotd)+'</li>');
-						html.push('<li>Max players: '+st.maxclients+'</li>');
+						html.push('<li>Name: '+convert_cube_string(st.serverdesc)+'</li>');
+						html.push('<li>Motd: '+convert_cube_string(st.servermotd)+'</li>');
+						html.push('<li>Max Clients: '+st.maxclients+'</li>');
 						html.push('</ul>');
 						div.innerHTML = html.join('');
 					} else div.innerHTML = 'Could not parse response';
@@ -103,12 +103,12 @@ function update_status() {
 						html.push('<ul>');
 						html.push('<li>Uptime: '+format_time(st.totalmillis, true)+'</li>');
 						html.push('<li>Mastermode: '+st.mastermodename+' ('+st.mastermode+')</li>');
-						html.push('<li>Game mode: '+st.gamemodename+' ('+st.gamemode+')</li>');
-						html.push('<li>Game time: '+format_time(st.gamemillis)+' / '+format_time(st.gamelimit)+'</li>');
+						html.push('<li>Gamemode: '+st.gamemodename+' ('+st.gamemode+')</li>');
+						html.push('<li>Gametime: '+format_time(st.gamemillis)+' / '+format_time(st.gamelimit)+'</li>');
 						html.push('<li>Map: '+(st.map?'<b>'+st.map+'</b>':'<i>No map</i>')+'</li>');
 						html.push('</ul>');
 						div.innerHTML = html.join('');
-					} else div.innerHTML = 'No players on the server.';
+					} else div.innerHTML = 'No players currently connected';
 				} else div.innerHTML = 'Error ' + (this.status ? this.status : '(unreachable)');
 				setTimeout(update_status, status_update_millis);
 			}
