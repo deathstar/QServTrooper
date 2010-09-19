@@ -1856,7 +1856,7 @@ namespace server
         {
             clientinfo *ci = clients[i];
             if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || ci->clientmap[0] || ci->mapcrc >= 0 || (req < 0 && ci->warned)) continue;
-            formatstring(msg)("%s has modified map \"%s\"", colorname(ci), smapname);
+            formatstring(msg)("\f0%s \f7has modified map \f2\"%s\"", colorname(ci), smapname);
             sendf(req, 1, "ris", N_SERVMSG, msg);
             if(req < 0) ci->warned = true;
         }
@@ -1868,7 +1868,7 @@ namespace server
             {
                 clientinfo *ci = clients[j];
                 if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || !ci->clientmap[0] || ci->mapcrc != info.crc || (req < 0 && ci->warned)) continue;
-                formatstring(msg)("%s has modified map \"%s\"", colorname(ci), smapname);
+                formatstring(msg)("\f0%s \f7has modified map \f2\"%s\"", colorname(ci), smapname);
                 sendf(req, 1, "ris", N_SERVMSG, msg);
                 if(req < 0) ci->warned = true;
             }
@@ -2088,7 +2088,7 @@ namespace server
         mapdata = opentempfile("mapdata", "w+b");
         if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "failed to open temporary file for map"); return; }
         mapdata->write(data, len);
-        defformatstring(msg)("\f0%s \f7uploaded a map to the server, \"\f2/getmap\f7\" to recieve it)", colorname(ci));
+        defformatstring(msg)("\f0%s \f7uploaded a map to the server, type \"\f2/getmap\f7\" to recieve it", colorname(ci));
         sendservmsg(msg);
     }
 
@@ -2430,7 +2430,6 @@ namespace server
 						int space;
 						char *c = text;
 						while(*c && isspace(*c)) c++;
-						
 
 					
 						if(textcmd("help", text)) {
@@ -2439,20 +2438,30 @@ namespace server
 							if(textcmd("whisper", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#whisper (cn) (message)\nDescription: \"whisper\" to another player (send them a message only they can see)");break;}
 					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: stop the server");break;}
 					        if(textcmd("selfinfo", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#testcon\nDescription: list your name, ip, connected time and server uptime");break;}
-							if(textcmd("selfinfo", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
+							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
 							if(textcmd("fragall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#fragall\nDescription: frag everyone on the server");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Commands: me, say, whisper, help, selfinfo, uptime, fragall and stopserver\nType #help (command) for more information");
 							break;
+							
 						}else if(textcmd("selfinfo", text)){
 							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
 							defformatstring(f)("Name: \f0%s \f7| Ip: \f2%s \f7| Connected for: \f2%d \f7seconds | Server Uptime: \f2%d \f7seconds", colorname(ci), ci->ip, ci->connectedmillis, (gamemillis/1000)+servuptime);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
+							
+						/*
+						}else if(textcmd("givemaster", oclient)){
+							setmaster(oclient);
+							defformatstring(s)("\f0%s \f7gave master to %s", ci->name, oclient->name); 
+							sendservmsg(s);
+                          	break;*/
+							
 						}else if(textcmd("uptime", text)){
 							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
 							defformatstring(f)("Server Uptime: \f2%d \f7seconds", (gamemillis/1000)+servuptime);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
+							
  						}else if(textcmd("fragall", text) && ci->privilege == PRIV_MASTER){
                             defformatstring(s)("ATTENTION: client %s fragged everyone on the server", colorname(ci));
 					        puts(s);
@@ -2461,6 +2470,7 @@ namespace server
 					        if(t->state.state==CS_ALIVE) suicide(t);
 						}
 					     	break;
+							
 						}else if(textcmd("fragall", text) && ci->privilege == PRIV_ADMIN){
                             defformatstring(s)("ATTENTION: client %s fragged everyone on the server", colorname(ci));
 					        puts(s);
@@ -2469,26 +2479,32 @@ namespace server
 					        if(t->state.state==CS_ALIVE) suicide(t);
 						}
 						    break;
+							
 						}else if(textcmd("fragall", text)){
                             sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 					     	break;
+							
 						}else if(textcmd("me", text)) {
 							if(text[3] == ' ') {
 							defformatstring(s)("\f0%s\f7%s", ci->name, text+3); //not spaced out because ciname already supplies a space.
 							sendservmsg(s);
 							break;
+								
 						}else if(text[3] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#me (message)");
 						    break;
+							
 						}
 						}else if(textcmd("say", text)) {
 							if(text[4] == ' ') {
 							defformatstring(d)("\f6%s", text+5);
 							sendservmsg(d);
 							break;
+								
 						}else if(text[4] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#say (mesage)");
 							break;
+							
 						}
                         }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
                             defformatstring(s)("ATTENTION: Server stopped by %s", colorname(ci));
@@ -2497,6 +2513,7 @@ namespace server
                             kicknonlocalclients();
                             exit(EXIT_FAILURE);
        						break; 
+							
                        }else if(textcmd("stopserver", text)){
 					       defformatstring(s)("WARNING: client %s attempted to stop the server (insufficent permissions)", colorname(ci));
 						   puts(s);
@@ -2507,6 +2524,7 @@ namespace server
                 		   defformatstring(s)("Server hosted by: \f0DeathStar \f7| Running \f2QServ 1.2 Beta");
                            sendservmsg(s);
 						   break; 
+						   
 					   }else if(textcmd("whisper", text)) {
 						   if(text[8] == ' ') {
 						   if(text[10] == ' '){
@@ -2519,6 +2537,7 @@ namespace server
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
 						   break;
+						   
 					   }
 					   
 					
@@ -2546,11 +2565,13 @@ namespace server
 							   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: #whisper (cn) (text)");
 						   }
 						   break;
+						   
 					   }else if(text[1] == '#' || text[1] == '@') {
 						   QUEUE_AI;
 						   QUEUE_INT(N_TEXT);
 						   QUEUE_STR(text+1);
 						   break;
+						   
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Command not found");
 						   break;
@@ -2705,11 +2726,16 @@ namespace server
                         allowedips.shrink(0);
                         if(mm>=MM_PRIVATE)
                         {
+							if(numclients(-1,false)<=1){
+							defformatstring(i)("\f3Error: \f7You cannot set mastermode to private: you are the only one in the server");
+							sendservmsg(i); 
+							mastermode = MM_OPEN;
+							}
                             loopv(clients) allowedips.add(getclientip(clients[i]->clientnum));
                         }
                        //Client side mastermode change message V (disabled to enable server side message included below, for added colors and newlines in the message)
                         //sendf(-1, 1, "rii", N_MASTERMODE, mastermode);
-defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);                       
+                        defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);                       
 						sendservmsg(s);
                     }
                     else
@@ -2726,7 +2752,7 @@ defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), ma
                 if(ci->privilege || ci->local)
                 {
                     bannedips.shrink(0);
-                    sendservmsg("cleared all bans");
+                    sendservmsg("All server bans cleared");
                 }
                 break;
             }
@@ -2801,7 +2827,7 @@ defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), ma
                 int val = getint(p);
                 if(ci->privilege<PRIV_ADMIN && !ci->local) break;
                 demonextmatch = val!=0;
-                defformatstring(msg)("demo recording is %s for next match", demonextmatch ? "enabled" : "disabled");
+                defformatstring(msg)("Demo recording is %s for next match", demonextmatch ? "enabled" : "disabled");
                 sendservmsg(msg);
                 break;
             }
@@ -2837,7 +2863,7 @@ defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), ma
             case N_GETMAP:
                 if(mapdata)
                 {
-                    sendf(sender, 1, "ris", N_SERVMSG, "server sending map...");
+                    sendf(sender, 1, "ris", N_SERVMSG, "Downloading map from server...");
                     sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
                     ci->needclipboard = totalmillis;
                 }

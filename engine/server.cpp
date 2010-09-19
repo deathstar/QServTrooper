@@ -433,7 +433,7 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
 #endif
 }         
 							  
-const char *disc_reasons[] = { "network error", "end of packet", "client num", "banned", "tag type (hacking)", "ip is banned", "server is in private mode", "server is full", "connection timed out", "flooding" };
+const char *disc_reasons[] = { "network error", "end of packet", "client num", "banned", "tag type", "ip is banned", "server is in private mode", "server is full", "connection timed out", "flooding" };
 
 void disconnect_client(int n, int reason)
 {
@@ -444,7 +444,7 @@ void disconnect_client(int n, int reason)
     clients[n]->peer->data = NULL;
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
-    defformatstring(s)("Client %s disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
+    defformatstring(s)("Client (%s) disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
     puts(s);
     server::sendservmsg(s);
 }
@@ -720,7 +720,7 @@ void serverhost_process_event(ENetEvent & event) {
             c.peer->data = &c;
             char hn[1024];
             copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-			outf(2 | OUT_NOGAME, "IP: %s", c.hostname);
+			outf(2 | OUT_NOGAME, "incomming connection (%s)", c.hostname);
 	
 
             int reason = server::clientconnect(c.num, c.peer->address.host, c.hostname);
