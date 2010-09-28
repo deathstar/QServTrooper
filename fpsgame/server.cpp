@@ -2481,6 +2481,7 @@ namespace server
 						    break;
 							
 						}else if(textcmd("fragall", text)){
+							
                             sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 					     	break;
 							
