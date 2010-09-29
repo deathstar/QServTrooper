@@ -1,6 +1,4 @@
 #include "game.h"
-#include <string.h>
-
 
 namespace game
 {
@@ -39,7 +37,6 @@ namespace server
 
         virtual bool keepable() const { return false; }
     };
-	
 
     struct timedevent : gameevent
     {
@@ -210,7 +207,7 @@ namespace server
     struct clientinfo
     {
         int clientnum, ownernum, connectmillis, sessionid, overflow, connectedmillis; 
-		char *ip; //ipstring
+	char *ip; //ipstring
         string name, team, mapvote;
         int playermodel;
         int modevote;
@@ -414,7 +411,7 @@ namespace server
 			case 2: mastermask = MM_COOPSERV; break;
 		}
 	});
-    SVAR(servermotd, "Welcome to \f1Aurora\f7. This server is running \f3QServ 1.2 Beta\f7, type \f2#help \f7for more information.");
+    SVAR(servermotd, "Welcome! use \f2#help \f7for more!");
 
     void *newclientinfo() { return new clientinfo; }
     void deleteclientinfo(void *ci) { delete (clientinfo *)ci; }
@@ -481,7 +478,7 @@ namespace server
         }
         return false;
     }
-	 //EZ test
+     //Code add start
 	string blkmsg[3] = {"fuck", "shit", "cunt"};
 	char textcmd(const char *a, const char *text){
 		for (int b=0; b<strlen(a); b++) {
@@ -512,7 +509,7 @@ namespace server
 			bad=false;
 		}
 	} 
-	//EZ test
+	//code add end
 
     void serverinit()
     {
@@ -603,7 +600,7 @@ namespace server
             case I_CARTRIDGES: sec = np*4; break;
             case I_HEALTH: sec = np*5; break;
             case I_GREENARMOUR:
-            case I_YELLOWARMOUR: sec = 20+rnd(10); break;
+            case I_YELLOWARMOUR: sec = 20; break;
             case I_BOOST:
             case I_QUAD: sec = 40+rnd(40); break;
         }
@@ -627,7 +624,7 @@ namespace server
  
     bool pickup(int i, int sender)         // server side item pickup, acknowledge first client that gets it
     {
-        if(gamemillis>=gamelimit || !sents.inrange(i) || !sents[i].spawned) return false;
+        if((m_timed && gamemillis>=gamelimit) || !sents.inrange(i) || !sents[i].spawned) return false;
         clientinfo *ci = getinfo(sender);
         if(!ci || (!ci->local && !ci->state.canpickup(sents[i].type))) return false;
         sents[i].spawned = false;
@@ -993,7 +990,7 @@ namespace server
         mastermode = MM_OPEN;
         allowedips.shrink(0);
         string msg;
-        if(val && authname) formatstring(msg)("\f0%s \f7claimed %s as '\fs\f5%s\fr'", colorname(ci), name, authname);
+        if(val && authname) formatstring(msg)("%s claimed %s as '\fs\f5%s\fr'", colorname(ci), name, authname);
         else formatstring(msg)("\f0%s \f7%s \f1%s", colorname(ci), val ? "claimed" : "relinquished", name);
         sendservmsg(msg);
         currentmaster = val ? ci->clientnum : -1;
@@ -1271,7 +1268,7 @@ namespace server
 
     int welcomepacket(packetbuf &p, clientinfo *ci)
     {
-        int hasmap = (m_edit && (clients.length()>1 || (ci && ci->local))) || (smapname[0] && (gamemillis<gamelimit || (ci && ci->state.state==CS_SPECTATOR && !ci->privilege && !ci->local) || numclients(ci ? ci->clientnum : -1, true, true, true)));
+        int hasmap = (m_edit && (clients.length()>1 || (ci && ci->local))) || (smapname[0] && (!m_timed || gamemillis<gamelimit || (ci && ci->state.state==CS_SPECTATOR && !ci->privilege && !ci->local) || numclients(ci ? ci->clientnum : -1, true, true, true)));
         putint(p, N_WELCOME);
         putint(p, hasmap);
         if(hasmap)
@@ -1402,7 +1399,7 @@ namespace server
 
         mapreload = false;
         gamemode = mode;
-		servuptime=(gamemillis/1000)+servuptime;
+	servuptime=(gamemillis/1000)+servuptime;
         gamemillis = 0;
         gamelimit = (m_overtime ? 15 : 10)*60000;
         interm = 0;
@@ -1500,7 +1497,7 @@ namespace server
         stopdemo();
         if(hasnonlocalclients() && !mapreload)
         {
-            defformatstring(msg)("local player forced %s on map %s", modename(mode), map);
+            defformatstring(msg)("local player forced %s on map \f1%s", modename(mode), map);
             sendservmsg(msg);
         }
         sendf(-1, 1, "risii", N_MAPCHANGE, map, mode, 1);
@@ -1519,7 +1516,7 @@ namespace server
             if(demorecord) enddemorecord();
             if((!ci->local || hasnonlocalclients()) && !mapreload)
             {
-                defformatstring(msg)("%s forced %s on map %s", ci->privilege && mastermode>=MM_VETO ? privname(ci->privilege) : "local player", modename(ci->modevote), ci->mapvote);
+                defformatstring(msg)("%s forced %s on map \f1%s", ci->privilege && mastermode>=MM_VETO ? privname(ci->privilege) : "local player", modename(ci->modevote), ci->mapvote);
                 sendservmsg(msg);
             }
             sendf(-1, 1, "risii", N_MAPCHANGE, ci->mapvote, ci->modevote, 1);
@@ -1527,7 +1524,7 @@ namespace server
         }
         else
         {
-            defformatstring(msg)("\f0%s \f7suggests %s on map \f1%s \f7(type \f2\"/map mapname\" \f7to vote)", colorname(ci), modename(reqmode), map);
+            defformatstring(msg)("\f0%s \f7suggests %s \f7on map \f1%s \f7(use \f2/%s %s \f7to vote)", colorname(ci), modename(reqmode), map, modename(reqmode), map);
             sendservmsg(msg);
             checkvotes();
         }
@@ -1558,29 +1555,26 @@ namespace server
             sendf(ts.health<=0 ? -1 : target->ownernum, 1, "ri7", N_HITPUSH, target->clientnum, gun, damage, v.x, v.y, v.z);
             target->setpushed();
         }
-         if(ts.health<=0)
-	        {
-	            target->state.deaths++;
-	            if(isteam(actor->team, target->team))
+        if(ts.health<=0)
+        {
+            target->state.deaths++;
+            if(isteam(actor->team, target->team))
 			            { 
 			                actor->state.teamkills++;
 			                target->state.deaths++;
-			              
-			                defformatstring(msg)("\f0%s \f7fragged his teammate \f0%s\f7", colorname(actor), colorname(target));
+
+			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 						    sendservmsg(msg);
 			            }
-            
             if(actor!=target && isteam(actor->team, target->team)) actor->state.teamkills++;
             int fragvalue = smode ? smode->fragvalue(target, actor) : (target==actor || isteam(target->team, actor->team) ? -1 : 1);
             actor->state.frags += fragvalue;
             if(fragvalue>0)
             {
-	        
                 int friends = 0, enemies = 0; // note: friends also includes the fragger
                 if(m_teammode) loopv(clients) if(strcmp(clients[i]->team, actor->team)) enemies++; else friends++;
                 else { friends = 1; enemies = clients.length()-1; }
                 actor->state.effectiveness += fragvalue*friends/float(max(enemies, 1));
-                
             }
             sendf(-1, 1, "ri4", N_DIED, target->clientnum, actor->clientnum, actor->state.frags);
             target->position.setsize(0);
@@ -1763,7 +1757,7 @@ namespace server
         if(!gamepaused) gamemillis += curtime;
 
         if(m_demo) readdemo();
-        else if(!gamepaused && gamemillis < gamelimit)
+        else if(!gamepaused && (!m_timed || gamemillis < gamelimit))
         {
             processevents();
             if(curtime)
@@ -1791,7 +1785,7 @@ namespace server
         while(bannedips.length() && bannedips[0].time-totalmillis>4*60*60000) bannedips.remove(0);
         loopv(connects) if(totalmillis-connects[i]->connectmillis>15000) disconnect_client(connects[i]->clientnum, DISC_TIMEOUT);
 
-        if(nextexceeded && gamemillis > nextexceeded)
+        if(nextexceeded && gamemillis > nextexceeded && (!m_timed || gamemillis < gamelimit))
         {
             nextexceeded = 0;
             loopvrev(clients) 
@@ -1856,7 +1850,7 @@ namespace server
         {
             clientinfo *ci = clients[i];
             if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || ci->clientmap[0] || ci->mapcrc >= 0 || (req < 0 && ci->warned)) continue;
-            formatstring(msg)("\f0%s \f7has modified map \f2\"%s\"", colorname(ci), smapname);
+            formatstring(msg)("\f3Warning: \f0%s \f7is playing with a modified map: \"%s\"", colorname(ci), smapname);
             sendf(req, 1, "ris", N_SERVMSG, msg);
             if(req < 0) ci->warned = true;
         }
@@ -1868,7 +1862,7 @@ namespace server
             {
                 clientinfo *ci = clients[j];
                 if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || !ci->clientmap[0] || ci->mapcrc != info.crc || (req < 0 && ci->warned)) continue;
-                formatstring(msg)("\f0%s \f7has modified map \f2\"%s\"", colorname(ci), smapname);
+                formatstring(msg)("\f3Warning: \f0%s \f7is playing with a modified map: \"%s\"", colorname(ci), smapname);
                 sendf(req, 1, "ris", N_SERVMSG, msg);
                 if(req < 0) ci->warned = true;
             }
@@ -1900,12 +1894,11 @@ namespace server
 
     void localdisconnect(int n)
     {
-
         if(m_demo) enddemoplayback();
         clientdisconnect(n);
     }
 
-    int clientconnect(int n, uint ip, char *ipstr)
+   int clientconnect(int n, uint ip, char *ipstr)
     {
 		clientinfo *ci = getinfo(n);
 		ci->ip=ipstr; //ipstring
@@ -1918,6 +1911,7 @@ namespace server
         sendservinfo(ci);
         return DISC_NONE;
     }
+
 
     void clientdisconnect(int n)
     {
@@ -2088,7 +2082,7 @@ namespace server
         mapdata = opentempfile("mapdata", "w+b");
         if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "failed to open temporary file for map"); return; }
         mapdata->write(data, len);
-        defformatstring(msg)("\f0%s \f7uploaded a map to the server, type \"\f2/getmap\f7\" to recieve it", colorname(ci));
+        defformatstring(msg)("\f0%s \f7uploaded a map to the server, type \f2\"/getmap\" \f7to receive it.", colorname(ci));
         sendservmsg(msg);
     }
 
@@ -2156,9 +2150,6 @@ namespace server
                 if(m_demo) setupdemoplayback();
 
                 if(servermotd[0]) sendf(sender, 1, "ris", N_SERVMSG, servermotd);
-                defformatstring(s)("%s connected", colorname(ci));
-		puts(s);
-		
             }
         }
         else if(chan==2)
@@ -2207,10 +2198,10 @@ namespace server
                 }
                 if(cp)
                 {
-                    if(!ci->local && !m_edit && max(vel.magnitude2(), (float)fabs(vel.z)) >= 180)
-                        cp->setexceeded();
                     if((!ci->local || demorecord || hasnonlocalclients()) && (cp->state.state==CS_ALIVE || cp->state.state==CS_EDITING))
                     {
+                        if(!ci->local && !m_edit && max(vel.magnitude2(), (float)fabs(vel.z)) >= 180)
+                            cp->setexceeded();
                         cp->position.setsize(0);
                         while(curmsg<p.length()) cp->position.add(p.buf[curmsg++]);
                     }
@@ -2417,9 +2408,8 @@ namespace server
                 cq->addevent(pickup);
                 break;
             }
-				
-			
-			case N_TEXT:
+
+           case N_TEXT:
             {
                 getstring(text, p);
                 filtertext(text, text);
@@ -2589,6 +2579,8 @@ namespace server
                 break;
             } 
 
+
+
             case N_SAYTEAM:
             {
                 getstring(text, p);
@@ -2748,12 +2740,14 @@ namespace server
                 break;
             }
 
+
+
             case N_CLEARBANS:
             {
                 if(ci->privilege || ci->local)
                 {
                     bannedips.shrink(0);
-                    sendservmsg("All server bans cleared");
+                    sendservmsg("cleared all bans");
                 }
                 break;
             }
@@ -2828,7 +2822,7 @@ namespace server
                 int val = getint(p);
                 if(ci->privilege<PRIV_ADMIN && !ci->local) break;
                 demonextmatch = val!=0;
-                defformatstring(msg)("Demo recording is %s for next match", demonextmatch ? "enabled" : "disabled");
+                defformatstring(msg)("demo recording is %s for next match", demonextmatch ? "enabled" : "disabled");
                 sendservmsg(msg);
                 break;
             }
@@ -2864,7 +2858,7 @@ namespace server
             case N_GETMAP:
                 if(mapdata)
                 {
-                    sendf(sender, 1, "ris", N_SERVMSG, "Downloading map from server...");
+                    sendf(sender, 1, "ris", N_SERVMSG, "server sending map...");
                     sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
                     ci->needclipboard = totalmillis;
                 }
@@ -3006,7 +3000,6 @@ namespace server
         }
     }
 
-	
     int laninfoport() { return SAUERBRATEN_LANINFO_PORT; }
     int serverinfoport(int servport) { return servport < 0 ? SAUERBRATEN_SERVINFO_PORT : servport+1; }
     int serverport(int infoport) { return infoport < 0 ? SAUERBRATEN_SERVER_PORT : infoport-1; }
