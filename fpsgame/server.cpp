@@ -1926,11 +1926,14 @@ namespace server
     void clientdisconnect(int n)
     {
         clientinfo *ci = getinfo(n);
+		
         if(ci->connected)
         {
             if(ci->privilege) setmaster(ci, false);
             if(smode) smode->leavegame(ci, true);
             ci->state.timeplayed += lastmillis - ci->state.lasttimeplayed;
+			defformatstring(s)(" %s", colorname(ci)); //ties in with disconnected client message
+			puts(s);
             savescore(ci);
             sendf(-1, 1, "ri2", N_CDIS, n);
             clients.removeobj(ci);
@@ -2160,6 +2163,8 @@ namespace server
                 if(m_demo) setupdemoplayback();
 
                 if(servermotd[0]) sendf(sender, 1, "ris", N_SERVMSG, servermotd);
+				defformatstring(d)(" %s", colorname(ci)); //this will tie in with incomming connection on the same line
+				puts(d);
             }
         }
         else if(chan==2)
@@ -2440,7 +2445,7 @@ namespace server
 					        if(textcmd("selfinfo", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#selfinfo\nDescription: list your name, ip, connected time and server uptime");break;}
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
 							if(textcmd("fragall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#fragall\nDescription: frag everyone on the server");break;}
-							if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
+						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, fragall, forceintermission and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
@@ -2450,7 +2455,7 @@ namespace server
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
 
-					    }else if(textcmd("forceintermission", text) && ci->privilege == PRIV_MASTER){
+					   	}else if(textcmd("forceintermission", text) && ci->privilege == PRIV_MASTER){ 
 						    startintermission();
 		                    break;	
 		
