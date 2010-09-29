@@ -413,6 +413,9 @@ namespace server
 	});
     SVAR(servermotd, "Welcome! use \f2#help \f7for more!");
 
+	//QServ Definitions
+	bool firstblood = false;
+
     void *newclientinfo() { return new clientinfo; }
     void deleteclientinfo(void *ci) { delete (clientinfo *)ci; }
 
@@ -1443,6 +1446,8 @@ namespace server
             demonextmatch = false;
             setupdemorecord();
         }
+
+		firstblood = false;
     }
 
     struct votecount
@@ -1565,6 +1570,7 @@ namespace server
 
 			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 						    sendservmsg(msg);
+							if(actor == target) {} //if suicide in teammode do not echo fragged a teammate message.
 			            }
             if(actor!=target && isteam(actor->team, target->team)) actor->state.teamkills++;
             int fragvalue = smode ? smode->fragvalue(target, actor) : (target==actor || isteam(target->team, actor->team) ? -1 : 1);
@@ -1577,6 +1583,8 @@ namespace server
                 actor->state.effectiveness += fragvalue*friends/float(max(enemies, 1));
             }
             sendf(-1, 1, "ri4", N_DIED, target->clientnum, actor->clientnum, actor->state.frags);
+			defformatstring(s)("\f0%s \f6drew FIRST BLOOD!", colorname(actor));
+            if(!firstblood && actor != target) { firstblood = true; sendservmsg(s); }
             target->position.setsize(0);
             if(smode) smode->died(target, actor);
             ts.state = CS_DEAD;
@@ -1593,6 +1601,8 @@ namespace server
         ci->state.frags += smode ? smode->fragvalue(ci, ci) : -1;
         ci->state.deaths++;
         sendf(-1, 1, "ri4", N_DIED, ci->clientnum, ci->clientnum, gs.frags);
+        defformatstring(d)("\f0%s \f7was looking good until he killed himself", colorname(ci));
+		sendservmsg(d);
         ci->position.setsize(0);
         if(smode) smode->died(ci, NULL);
         gs.state = CS_DEAD;
@@ -2427,10 +2437,11 @@ namespace server
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
 							if(textcmd("whisper", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#whisper (cn) (message)\nDescription: \"whisper\" to another player (send them a message only they can see)");break;}
 					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: stop the server");break;}
-					        if(textcmd("selfinfo", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#testcon\nDescription: list your name, ip, connected time and server uptime");break;}
+					        if(textcmd("selfinfo", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#selfinfo\nDescription: list your name, ip, connected time and server uptime");break;}
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
 							if(textcmd("fragall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#fragall\nDescription: frag everyone on the server");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Commands: me, say, whisper, help, selfinfo, uptime, fragall and stopserver\nType #help (command) for more information");
+							if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, fragall, forceintermission and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
 						}else if(textcmd("selfinfo", text)){
@@ -2438,14 +2449,19 @@ namespace server
 							defformatstring(f)("Name: \f0%s \f7| Ip: \f2%s \f7| Connected for: \f2%d \f7seconds | Server Uptime: \f2%d \f7seconds", colorname(ci), ci->ip, ci->connectedmillis, (gamemillis/1000)+servuptime);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
-							
-						/*
-						}else if(textcmd("givemaster", oclient)){
-							setmaster(oclient);
-							defformatstring(s)("\f0%s \f7gave master to %s", ci->name, oclient->name); 
-							sendservmsg(s);
-                          	break;*/
-							
+
+					    }else if(textcmd("forceintermission", text) && ci->privilege == PRIV_MASTER){
+						    startintermission();
+		                    break;	
+		
+					    }else if(textcmd("forceintermission", text) && ci->privilege == PRIV_ADMIN){
+						    startintermission();
+			                break;
+		
+					    }else if(textcmd("forceintermission", text)){
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
+			                break;
+				
 						}else if(textcmd("uptime", text)){
 							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
 							defformatstring(f)("Server Uptime: \f2%d \f7seconds", (gamemillis/1000)+servuptime);
