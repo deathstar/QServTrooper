@@ -1529,7 +1529,7 @@ namespace server
         }
         else
         {
-            defformatstring(msg)("\f0%s \f7suggests %s \f7on map \f1%s \f7(use \f2/%s %s \f7to vote)", colorname(ci), modename(reqmode), map, modename(reqmode), map);
+            defformatstring(msg)("\f0%s \f7suggests %s \f7on map \f1%s \f7(use \f2/map %s \f7to vote)", colorname(ci), modename(reqmode), map, map);
             sendservmsg(msg);
             checkvotes();
         }
