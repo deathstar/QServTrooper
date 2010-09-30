@@ -2964,7 +2964,7 @@ namespace server
             case N_PAUSEGAME:
             {
                 int val = getint(p);
-                if(ci->privilege<PRIV_ADMIN && !ci->local) break;
+                if(ci->privilege<PRIV_MASTER && !ci->local) break;
                 pausegame(val > 0);
                 break;
             }
