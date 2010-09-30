@@ -2509,7 +2509,7 @@ namespace server
 						}
 						}else if(textcmd("say", text)) {
 							if(text[4] == ' ') {
-							defformatstring(d)("\f6%s", text+5);
+							defformatstring(d)("\f7%s", text+5);
 							sendservmsg(d);
 							break;
 								
@@ -2795,7 +2795,10 @@ namespace server
                 if(!spinfo || (spinfo->state.state==CS_SPECTATOR ? val : !val)) break;
 
                 if(spinfo->state.state!=CS_SPECTATOR && val)
-                {
+					{ 
+				    defformatstring(l)("\f0%s \f7is now a spectator", colorname(ci));
+					sendservmsg(l);
+					printf("%s is now a spectator\n", colorname(ci));
                     if(spinfo->state.state==CS_ALIVE) suicide(spinfo);
                     if(smode) smode->leavegame(spinfo);
                     spinfo->state.state = CS_SPECTATOR;
@@ -2804,6 +2807,9 @@ namespace server
                 }
                 else if(spinfo->state.state==CS_SPECTATOR && !val)
                 {
+					defformatstring(l)("\f0%s \f7is no longer spectating", colorname(ci));
+					sendservmsg(l);
+					printf("%s is no longer spectating\n", colorname(ci));
                     spinfo->state.state = CS_DEAD;
                     spinfo->state.respawn();
                     spinfo->state.lasttimeplayed = lastmillis;
