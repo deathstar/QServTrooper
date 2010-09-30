@@ -2886,6 +2886,9 @@ namespace server
                 if(mapdata)
                 {
                     sendf(sender, 1, "ris", N_SERVMSG, "server sending map...");
+					defformatstring(l)("\f0%s \f7is downloading map \f1\"%s\"", colorname(ci), smapname);
+					sendservmsg(l);
+					printf("%s is downloading map \"%s\"", colorname(ci), smapname);
                     sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
                     ci->needclipboard = totalmillis;
                 }
