@@ -2796,9 +2796,9 @@ namespace server
 
                 if(spinfo->state.state!=CS_SPECTATOR && val)
 					{ 
-				    defformatstring(l)("\f0%s \f7is now a spectator", colorname(ci));
+				    defformatstring(l)("\f0%s \f7is now a spectator", spinfo->name);
 					sendservmsg(l);
-					printf("%s is now a spectator\n", colorname(ci));
+					printf("%s is now a spectator\n", spinfo->name);
                     if(spinfo->state.state==CS_ALIVE) suicide(spinfo);
                     if(smode) smode->leavegame(spinfo);
                     spinfo->state.state = CS_SPECTATOR;
@@ -2807,9 +2807,9 @@ namespace server
                 }
                 else if(spinfo->state.state==CS_SPECTATOR && !val)
                 {
-					defformatstring(l)("\f0%s \f7is no longer spectating", colorname(ci));
+					defformatstring(l)("\f0%s \f7is no longer spectating", spinfo->name);
 					sendservmsg(l);
-					printf("%s is no longer spectating\n", colorname(ci));
+					printf("%s is no longer spectating\n", spinfo->name);
                     spinfo->state.state = CS_DEAD;
                     spinfo->state.respawn();
                     spinfo->state.lasttimeplayed = lastmillis;
