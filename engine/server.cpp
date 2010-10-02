@@ -311,7 +311,7 @@ void disconnect_client(int n, int reason)
     clients[n]->peer->data = NULL;
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
-    defformatstring(s)("client (%s) disconnected because: \f3%s", clients[n]->hostname, disc_reasons[reason]);
+    defformatstring(s)("client \f2(%s) \f7disconnected because: \f3%s", clients[n]->hostname, disc_reasons[reason]);
     puts(s);
     server::sendservmsg(s);
 }
