@@ -312,8 +312,8 @@ void disconnect_client(int n, int reason)
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
     defformatstring(s)("client \f2(%s) \f7disconnected because: \f3%s", clients[n]->hostname, disc_reasons[reason]);
-    puts(s);
-    server::sendservmsg(s);
+	server::sendservmsg(s);
+	printf("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
 }
 
 void kicknonlocalclients(int reason)
