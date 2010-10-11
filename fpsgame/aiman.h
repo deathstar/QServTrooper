@@ -232,13 +232,13 @@ namespace aiman
 	void reqadd(clientinfo *ci, int skill)
 	{
         if(!ci->local && !ci->privilege) return;
-        if(!addai(skill, !ci->local && ci->privilege < PRIV_ADMIN ? botlimit : -1)) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3[ERROR]: \f7failed to add bot: max limit reached");
+        if(!addai(skill, !ci->local && ci->privilege < PRIV_ADMIN ? botlimit : -1)) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "failed to add bot");
 	}
 
 	void reqdel(clientinfo *ci)
 	{
         if(!ci->local && !ci->privilege) return;
-        if(!deleteai()) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3[ERROR]: \f7failed to remove any bots: none left");
+        if(!deleteai()) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "failed to remove any bots");
 	}
 
     void setbotlimit(clientinfo *ci, int limit)
@@ -246,7 +246,7 @@ namespace aiman
         if(ci && !ci->local && ci->privilege < PRIV_ADMIN) return;
         botlimit = clamp(limit, 0, MAXBOTS);
         dorefresh = true;
-        defformatstring(msg)("\f2[NOTICE]: \f7bot limit is now %d", botlimit);
+        defformatstring(msg)("bot limit is now %d", botlimit);
         sendservmsg(msg);
     }
 
@@ -255,7 +255,7 @@ namespace aiman
         if(ci && !ci->local && !ci->privilege) return;
         botbalance = balance ? 1 : 0;
         dorefresh = true;
-        defformatstring(msg)("\f2[NOTICE]: \f7Bot team balancing is now %s", botbalance ? "\f0enabled" : "\f3disabled");
+        defformatstring(msg)("Bot team balancing is now %s", botbalance ? "\f0enabled" : "\f3disabled");
         sendservmsg(msg);
     }
 

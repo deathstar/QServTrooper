@@ -1583,7 +1583,7 @@ namespace server
                 actor->state.effectiveness += fragvalue*friends/float(max(enemies, 1));
             }
             sendf(-1, 1, "ri4", N_DIED, target->clientnum, actor->clientnum, actor->state.frags);
-			defformatstring(s)("\f0%s \f6drew FIRST BLOOD!", colorname(actor));
+			defformatstring(s)("\f0%s \f7drew \f6FIRST BLOOD!", colorname(actor));
             if(!firstblood && actor != target) { firstblood = true; sendservmsg(s); }
             target->position.setsize(0);
             if(smode) smode->died(target, actor);
@@ -1601,8 +1601,9 @@ namespace server
         ci->state.frags += smode ? smode->fragvalue(ci, ci) : -1;
         ci->state.deaths++;
         sendf(-1, 1, "ri4", N_DIED, ci->clientnum, ci->clientnum, gs.frags);
-        defformatstring(d)("\f0%s \f7was looking good until he killed himself", colorname(ci));
-		sendservmsg(d);
+		//this message ends up spamming things more than looking good, every time you become a spectator, etc.
+        //defformatstring(d)("\f0%s \f7was looking good until he killed himself", colorname(ci));
+		//sendservmsg(d);
         ci->position.setsize(0);
         if(smode) smode->died(ci, NULL);
         gs.state = CS_DEAD;
