@@ -2769,7 +2769,10 @@ namespace server
                 if(ci->privilege || ci->local)
                 {
                     bannedips.shrink(0);
-                    sendservmsg("cleared all bans");
+                    sendservmsg("All bans \f0cleared");
+					defformatstring(v)("All bans cleared");
+					puts(v);
+					
                 }
                 break;
             }
