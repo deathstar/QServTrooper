@@ -971,7 +971,7 @@ namespace server
             if(haspass) ci->privilege = PRIV_ADMIN;
             else if(!authname && !(mastermask&MM_AUTOAPPROVE) && !ci->privilege && !ci->local)
             {
-                sendf(ci->clientnum, 1, "ris", N_SERVMSG, "This server requires you to use the \"/auth\" command to gain master.");
+                sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Master is currently disabled");
                 return;
             }
             else
@@ -2467,7 +2467,27 @@ namespace server
 					    }else if(textcmd("forceintermission", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 			                break;
-				
+			
+					    }else if(textcmd("allowmaster", text) && ci->privilege == PRIV_ADMIN){
+							mastermask = MM_AUTOAPPROVE;
+							defformatstring(s)("Master has been \f0enabled", colorname(ci));
+							sendservmsg(s);
+							break;
+
+						}else if(textcmd("allowmaster", text)){
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
+							break;
+
+						}else if(textcmd("disallowmaster", text) && ci->privilege == PRIV_ADMIN){
+							mastermask = !MM_AUTOAPPROVE;
+							defformatstring(s)("Master has been \f3disabled", colorname(ci));
+							sendservmsg(s);
+							break;
+
+						}else if(textcmd("disallowmaster", text)){
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
+							break;
+						
 						}else if(textcmd("uptime", text)){
 							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
 							defformatstring(f)("Server Uptime: \f2%d \f7seconds", (gamemillis/1000)+servuptime);

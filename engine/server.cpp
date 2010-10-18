@@ -311,9 +311,9 @@ void disconnect_client(int n, int reason)
     clients[n]->peer->data = NULL;
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
-    defformatstring(s)("client \f2(%s) \f7disconnected because: \f3%s", clients[n]->hostname, disc_reasons[reason]);
+    defformatstring(s)("client \f2(%s) \f7disconnected because: \f3%s\n", clients[n]->hostname, disc_reasons[reason]);
 	server::sendservmsg(s);
-	printf("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
+	printf("client (%s) disconnected because: %s\n", clients[n]->hostname, disc_reasons[reason]);
 }
 
 void kicknonlocalclients(int reason)
