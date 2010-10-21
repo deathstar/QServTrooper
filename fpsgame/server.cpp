@@ -411,7 +411,6 @@ namespace server
 			case 2: mastermask = MM_COOPSERV; break;
 		}
 	});
-    SVAR(servermotd, "Welcome! use \f2#help \f7for more!");
 
 	//QServ Definitions
 	bool firstblood = false;
@@ -2163,7 +2162,8 @@ namespace server
 
                 if(m_demo) setupdemoplayback();
 
-                if(servermotd[0]) sendf(sender, 1, "ris", N_SERVMSG, servermotd);
+                defformatstring(l)("Welcome \f0%s\f7!, enjoy your stay.", colorname(ci)); 
+                if(servermotd[0]) sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)(" %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
             }
