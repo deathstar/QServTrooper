@@ -2162,8 +2162,8 @@ namespace server
 
                 if(m_demo) setupdemoplayback();
 
-                defformatstring(l)("Welcome \f0%s\f7!, enjoy your stay.", colorname(ci)); 
-                if(servermotd[0]) sendf(sender, 1, "ris", N_SERVMSG, l);
+                defformatstring(l)("Welcome \f0%s\f7, enjoy your stay.", colorname(ci)); 
+                sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)(" %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
             }
