@@ -150,7 +150,7 @@ else
 	echo "${c_bred}Not found.${c_reset}"
 	echo "Please install GeoIP library and development files."
 	echo "Debian/Ubuntu users can do ${c_cyan}sudo apt-get install libgeoip1 libgeoip-dev${c_reset}"
-	echo "Frogmod will be built without GeoIP support."
+	echo "QServ will be built without GeoIP support."
 fi
 
 

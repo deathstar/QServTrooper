@@ -2162,6 +2162,7 @@ namespace server
 
                 if(m_demo) setupdemoplayback();
 
+				//motd - Message of the Day
                 defformatstring(l)("Welcome \f0%s\f7, enjoy your stay.", colorname(ci)); 
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)(" %s", colorname(ci)); //this will tie in with incomming connection on the same line
@@ -2497,7 +2498,7 @@ namespace server
                           	break;
 							
  						}else if(textcmd("fragall", text) && ci->privilege == PRIV_MASTER){
-                            defformatstring(s)("ATTENTION: client %s fragged everyone on the server", colorname(ci));
+                            defformatstring(s)("ATTENTION: client %s fragged everyone on the server\n", colorname(ci));
 					        puts(s);
                             loopv(clients) {
 				                clientinfo *t = clients[i];
@@ -2506,7 +2507,7 @@ namespace server
 					     	break;
 							
 						}else if(textcmd("fragall", text) && ci->privilege == PRIV_ADMIN){
-                            defformatstring(s)("ATTENTION: client %s fragged everyone on the server", colorname(ci));
+                            defformatstring(s)("ATTENTION: client %s fragged everyone on the server\n", colorname(ci));
 					        puts(s);
                             loopv(clients) {
 				            clientinfo *t = clients[i];
@@ -2542,15 +2543,14 @@ namespace server
 							
 						}
                         }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
-                            defformatstring(s)("ATTENTION: Server stopped by %s", colorname(ci));
+                            defformatstring(s)("ATTENTION: Server stopped by %s\n", colorname(ci));
 							puts(s);
-						    server::sendservmsg(s);
                             kicknonlocalclients();
                             exit(EXIT_FAILURE);
        						break; 
 							
                        }else if(textcmd("stopserver", text)){
-					       defformatstring(s)("WARNING: client %s attempted to stop the server (insufficent permissions)", colorname(ci));
+					       defformatstring(s)("WARNING: client %s attempted to stop the server (insufficent permissions)\n", colorname(ci));
 						   puts(s);
 					       sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");  
 					       break;
