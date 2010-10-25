@@ -2471,6 +2471,16 @@ namespace server
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 			                break;
 			
+						}else if(textcmd("masterstatus", text) && ci->privilege == PRIV_ADMIN){
+							if(mastermask = MM_PRIVSERV) {
+								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Master is currently \f0enabled\f7");
+							}
+							else if(mastermask = !MM_AUTOAPPROVE) {
+								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Master is currently \f3disabled\f7");
+							}
+								
+							break;
+			
 					    }else if(textcmd("allowmaster", text) && ci->privilege == PRIV_ADMIN){
 							mastermask = MM_PRIVSERV;
 							defformatstring(s)("Master has been \f0enabled", colorname(ci));

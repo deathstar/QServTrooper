@@ -77,8 +77,6 @@
 #include "ents.h"
 #include "command.h"
 
-#include "evirc.h"
-
 #include "iengine.h"
 #include "igame.h"
 
