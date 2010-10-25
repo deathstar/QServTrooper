@@ -88,5 +88,4 @@ http://www.fernlightning.com
 Quinton "Quin" Reeves
 http://bloodfrontier.com
 
-For additional authors/contributors, see the Sauerbraten binary distribution readme.
 
