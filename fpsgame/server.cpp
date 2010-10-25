@@ -2734,27 +2734,24 @@ namespace server
                         if(mm>=MM_PRIVATE)
                         {
 							if(numclients(-1,false)<=1){
-							defformatstring(i)("\f3Error: \f7You cannot set mastermode to private: you are the only one in the server");
+							defformatstring(i)("\f3Error: \f7Mastermode 3 (Private) is disabled when only 1 client is in the server");
 							sendservmsg(i); 
 							mastermode = MM_OPEN;
 							}
                             loopv(clients) allowedips.add(getclientip(clients[i]->clientnum));
                         }
-                       //Client side mastermode change message V (disabled to enable server side message included below, for added colors and newlines in the message)
                         //sendf(-1, 1, "rii", N_MASTERMODE, mastermode);
                         defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);                       
 						sendservmsg(s);
                     }
                     else
                     {
-                        defformatstring(s)("mastermode %d is disabled on this server", mm);
+                        defformatstring(s)("\f3Error: Mastermode %d (%s) is disabled", mm, mastermodename(mastermode));
                         sendf(sender, 1, "ris", N_SERVMSG, s);
                     }
                 }
                 break;
             }
-
-
 
             case N_CLEARBANS:
             {
@@ -2792,7 +2789,7 @@ namespace server
 
                 if(spinfo->state.state!=CS_SPECTATOR && val)
 					{ 
-				    defformatstring(l)("\f0%s \f7is now a spectator", spinfo->name);
+				    defformatstring(l)("\f0%s \f7is now spectating", spinfo->name);
 					sendservmsg(l);
 					printf("%s is now a spectator\n", spinfo->name);
                     if(spinfo->state.state==CS_ALIVE) suicide(spinfo);
@@ -2845,7 +2842,7 @@ namespace server
                 int val = getint(p);
                 if(ci->privilege<PRIV_ADMIN && !ci->local) break;
                 demonextmatch = val!=0;
-                defformatstring(msg)("demo recording is %s for next match", demonextmatch ? "enabled" : "disabled");
+                defformatstring(msg)("Demo recording has been %s for next match", demonextmatch ? "\f0enabled" : "\f3disabled");
                 sendservmsg(msg);
                 break;
             }
@@ -2881,14 +2878,15 @@ namespace server
             case N_GETMAP:
                 if(mapdata)
                 {
-                    sendf(sender, 1, "ris", N_SERVMSG, "server sending map...");
+                    sendf(sender, 1, "ris", N_SERVMSG, "Server uploading map...");
+					
 					defformatstring(l)("\f0%s \f7is downloading map \f1\"%s\"", colorname(ci), smapname);
 					sendservmsg(l);
-					printf("%s is downloading map \"%s\"", colorname(ci), smapname);
+					printf("%s is downloading the map...", colorname(ci));
                     sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
                     ci->needclipboard = totalmillis;
                 }
-                else sendf(sender, 1, "ris", N_SERVMSG, "no map to send");
+                else sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7No map to send");
                 break;
 
             case N_NEWMAP:
@@ -2911,7 +2909,6 @@ namespace server
                 int val = getint(p);
                 getstring(text, p);
                 setmaster(ci, val!=0, text);
-                // don't broadcast the master password
                 break;
             }
 
