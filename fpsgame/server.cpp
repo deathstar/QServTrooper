@@ -2556,9 +2556,8 @@ namespace server
 					       break;
 					       
                        }else if(textcmd("info", text)){
-                		   defformatstring(s)("Server hosted by: \f0DeathStar \f7| Running \f2QServ 1.2 Beta");
-                           sendservmsg(s);
-						   break; 
+                		   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Running QServ 2.0");
+ 						   break; 
 						   
 					   }else if(textcmd("whisper", text)) {
 						   if(text[8] == ' ') {
