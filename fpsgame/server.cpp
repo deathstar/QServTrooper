@@ -2434,7 +2434,6 @@ namespace server
                 if(ci)
                 {
                     if(text[0] == '#' || text[0] == '@') {
-						int space;
 						char *c = text;
 						while(*c && isspace(*c)) c++;
 
