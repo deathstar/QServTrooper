@@ -2437,7 +2437,6 @@ namespace server
 						char *c = text;
 						while(*c && isspace(*c)) c++;
 
-					
 						if(textcmd("help", text)) {
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
@@ -2447,8 +2446,8 @@ namespace server
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
 							if(textcmd("fragall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#fragall\nDescription: frag everyone on the server");break;}
 						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
-							if(textcmd("allowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#allowmaster\nDescription: allow the /setmaster 1 command");break;}
-							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: disallow the /setmaster 1 command");break;}
+							if(textcmd("allowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#allowmaster\nDescription: allow the \"/setmaster 1\" command");break;}
+							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: disallow the \"/setmaster 1\" command");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, fragall, forceintermission, allowmaster, disallowmaster and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
@@ -2502,7 +2501,7 @@ namespace server
                             loopv(clients) {
 				                clientinfo *t = clients[i];
 					        if(t->state.state==CS_ALIVE) suicide(t);
-						}
+						    }
 					     	break;
 							
 						}else if(textcmd("fragall", text) && ci->privilege == PRIV_ADMIN){
@@ -2511,7 +2510,7 @@ namespace server
                             loopv(clients) {
 				            clientinfo *t = clients[i];
 					        if(t->state.state==CS_ALIVE) suicide(t);
-						}
+						    }
 						    break;
 							
 						}else if(textcmd("fragall", text)){
@@ -2527,8 +2526,7 @@ namespace server
 								
 						}else if(text[3] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#me (message)");
-						    break;
-							
+						    break;	
 						}
 						}else if(textcmd("say", text)) {
 							if(text[4] == ' ') {
@@ -2538,8 +2536,7 @@ namespace server
 								
 						}else if(text[4] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#say (mesage)");
-							break;
-							
+							break;	
 						}
                         }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
                             defformatstring(s)("ATTENTION: Server stopped by %s\n", colorname(ci));
@@ -2569,36 +2566,13 @@ namespace server
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
-						   break;
-						   
+						   break;	   
 					   }
-					   
-					
 					   }
 					   }else if(text[8] == '\0') {
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: #whisper (cn) (text)");
 					   }
-					   }else if(textcmd("warn", text)) {
-						   if(text[17] == ' ') {
-						if(text[16] == ' '){
-								   int i = text[18] - '0';
-								   if (clients[i]->connected){
-									   defformatstring(s)("\f0%s \f7whispers to you: %s", ci->name, text+19);
-									   sendf(i, 1, "ris", N_SERVMSG, s);
-									   defformatstring(d)("message sent");
-									   sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
-								   }else{
-									   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
-									   break;
-								   }
-								   
-								   
-							   }
-						   }else if(text[25] == '\0') {
-							   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: #whisper (cn) (text)");
-						   }
-						   break;
-						   
+					
 					   }else if(text[1] == '#' || text[1] == '@') {
 						   QUEUE_AI;
 						   QUEUE_INT(N_TEXT);
@@ -2620,10 +2594,8 @@ namespace server
                 }
                 break;
             } 
-
-
-
-            case N_SAYTEAM:
+ 			
+			case N_SAYTEAM:
             {
                 getstring(text, p);
                 if(!ci || !cq || (ci->state.state==CS_SPECTATOR && !ci->local && !ci->privilege) || !m_teammode || !cq->team[0]) break;
