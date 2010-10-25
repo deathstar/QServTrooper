@@ -112,48 +112,6 @@ case $NEED_LIBRT in
 		;;
 esac
 
-echo "${c_bblue}Checking for GeoIP...${c_reset}"
-
-cat > $tfl <<EOF
-extern void GeoIP_new();
-int main() { GeoIP_new(); }
-EOF
-
-if gcc $tfl -lGeoIP -o /dev/null > /dev/null 2>&1; then
-HAVE_LIBGEOIP=true
-else
-HAVE_LIBGEOIP=false
-fi
-
-cat > $tfl <<EOF
-#include <GeoIP.h>
-int main() {}
-EOF
-
-if gcc $tfl -o /dev/null > /dev/null 2>&1; then
-HAVE_GEOIP_H=true
-else
-HAVE_GEOIP_H=false
-fi
-
-if test $HAVE_LIBGEOIP = true; then
-	if test $HAVE_GEOIP_H = true; then
-		echo "${c_bgreen}Found.${c_reset}"
-		echo "#define HAVE_GEOIP 1" >> config.h
-		echo "LDFLAGS+=-lGeoIP" >> config.mk
-	else
-		echo "${c_bred}Not found.${c_reset}"
-		echo "Please install GeoIP development files."
-		echo "Debian/Ubuntu users can do ${c_cyan}sudo apt-get install libgeoip-dev${c_reset}"
-	fi
-else
-	echo "${c_bred}Not found.${c_reset}"
-	echo "Please install GeoIP library and development files."
-	echo "Debian/Ubuntu users can do ${c_cyan}sudo apt-get install libgeoip1 libgeoip-dev${c_reset}"
-	echo "QServ will be built without GeoIP support."
-fi
-
-
 echo "${c_bblue}Checking for /proc...${c_reset}"
 
 if [ -d /proc ]; then
