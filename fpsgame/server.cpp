@@ -2472,7 +2472,7 @@ namespace server
 			                break;
 			
 					    }else if(textcmd("allowmaster", text) && ci->privilege == PRIV_ADMIN){
-							mastermask = MM_COOPSERV;
+							mastermask = MM_PRIVSERV;
 							defformatstring(s)("Master has been \f0enabled", colorname(ci));
 							sendservmsg(s);
 							break;
