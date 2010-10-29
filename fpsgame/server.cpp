@@ -2452,7 +2452,8 @@ namespace server
 							if(textcmd("ip", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ip (cn)\nDescription: get the ip of another client");break;}
 							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: temporarily kick another client (they can reconnect immediately)");break;}
 							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: ban another client permanently");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, fragall, forceintermission, allowmaster, disallowmaster, ip, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
 						}else if(textcmd("selfinfo", text)){
@@ -2570,27 +2571,33 @@ namespace server
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
 							
- 						}else if(textcmd("fragall", text) && ci->privilege == PRIV_MASTER){
-                            defformatstring(s)("ATTENTION: client %s fragged everyone on the server\n", colorname(ci));
-					        puts(s);
-                            loopv(clients) {
-				                clientinfo *t = clients[i];
-					        if(t->state.state==CS_ALIVE) suicide(t);
-						    }
-					     	break;
-							
-						}else if(textcmd("fragall", text) && ci->privilege == PRIV_ADMIN){
+						}else if(textcmd("frag", text) && ci->privilege) {
+							if(text[5] == ' ') {
+								int v = text[6] - '0';
+								clientinfo *cn = (clientinfo *)getclientinfo(v);
+								if (cn->connected){
+									if(cn->state.state==CS_ALIVE) suicide(cn);
+							break;
+							}
+						}else if(text[5] == '\0') {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#frag (cn)");
+							break;	
+							}
+						}else if(textcmd("frag", text)) {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
+							break;
+						
+						}else if(textcmd("fragall", text) && ci->privilege){
                             defformatstring(s)("ATTENTION: client %s fragged everyone on the server\n", colorname(ci));
 					        puts(s);
                             loopv(clients) {
 				            clientinfo *t = clients[i];
 					        if(t->state.state==CS_ALIVE) suicide(t);
 						    }
-						    break;
+					     	break;
 							
 						}else if(textcmd("fragall", text)){
-							
-                            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 					     	break;
 							
 						}else if(textcmd("me", text)) {
