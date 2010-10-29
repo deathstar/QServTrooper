@@ -2456,38 +2456,86 @@ namespace server
 							defformatstring(f)("Name: \f0%s \f7| Ip: \f2%s \f7| Connected for: \f2%d \f7seconds | Server Uptime: \f2%d \f7seconds", colorname(ci), ci->ip, ci->connectedmillis, (gamemillis/1000)+servuptime);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
-		
-				        }else if(textcmd("givemaster", text) && ci->privilege == PRIV_MASTER || ci->privilege == PRIV_ADMIN) {
+
+						}else if(textcmd("ip", text) && ci->privilege) { 
+							if(text[3] == ' ') {
+								int v = text[4] - '0';
+								clientinfo *cn = (clientinfo *)getclientinfo(v);
+								if (cn->connected){
+									defformatstring(s)("\f0%s's \f7IP: \f2%s", colorname(cn), cn->ip);
+									sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
+								break;
+								}
+						}else if(text[3] == '\0') {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#ip (cn)");
+							break;        
+							}
+						}else if(textcmd("ip", text)) {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
+							break;
+							
+						}else if(textcmd("ban", text) && ci->privilege == PRIV_ADMIN) { 
+							if(text[4] == ' ') {
+								int v = text[5] - '0';
+								clientinfo *cn = (clientinfo *)getclientinfo(v);
+								if (cn->connected){
+									ban &b = bannedips.add();
+									b.time = gamemillis;
+									b.ip = getclientip(cn->clientnum);
+									allowedips.removeobj(b.ip);
+									disconnect_client(cn->clientnum, DISC_KICK);
+								break;
+								}
+						}else if(text[4] == '\0') {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#ban (cn)");
+							break;        
+							}
+						}else if(textcmd("ban", text)) {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
+							break;
+							
+						}else if(textcmd("kick", text) && ci->privilege) { 
+							if(text[5] == ' ') {
+								int v = text[6] - '0';
+								clientinfo *cn = (clientinfo *)getclientinfo(v);
+								if (cn->connected){
+									disconnect_client(cn->clientnum, DISC_KICK);
+								break;
+								}
+						}else if(text[5] == '\0') {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#kick (cn)");
+							break;        
+							}
+						}else if(textcmd("kick", text)) {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
+							break;
+			
+				        }else if(textcmd("givemaster", text) && ci->privilege) {
 							 if(text[11] == ' ') {
 						     	int v = text[12] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
 								if (cn->connected){
-								ci->privilege=0;
-								currentmaster = cn->clientnum;
-								cn->privilege = PRIV_MASTER;
-								sendf(-1, 1, "ri4", N_CURRENTMASTER, currentmaster, currentmaster >= 0 ? cn->privilege : 0, mastermode);
-								defformatstring(b)("\f0%s \f7gave master to \f6%s", colorname(ci), colorname(cn));
-								sendservmsg(b);   
-								printf("%s gave master to %s\n", colorname(ci), colorname(cn)); 
+									ci->privilege=0;
+									currentmaster = cn->clientnum;
+									cn->privilege = PRIV_MASTER;
+									sendf(-1, 1, "ri4", N_CURRENTMASTER, currentmaster, currentmaster >= 0 ? cn->privilege : 0, mastermode);
+									defformatstring(b)("\f0%s \f7gave master to \f6%s", colorname(ci), colorname(cn));
+									sendservmsg(b);   
+									printf("%s gave master to %s\n", colorname(ci), colorname(cn)); 
 								break;
 								}
-							 }else if(text[11] == '\0') {
-							    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#givemaster (cn)");
-								break;	
-								}
-							}else if(textcmd("givemaster", text)) {
-								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
-								break;
+						}else if(text[11] == '\0') {
+					    	sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#givemaster (cn)");
+							break;	
+							}
+						}else if(textcmd("givemaster", text)) {
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
+							break;
 						
-								
-						}else if(textcmd("forceintermission", text) && ci->privilege == PRIV_MASTER){ 
+						}else if(textcmd("forceintermission", text) && ci->privilege){ 
 							startintermission();
 				            break;
-		
-					    }else if(textcmd("forceintermission", text) && ci->privilege == PRIV_ADMIN){
-						    startintermission();
-			                break;
-		
+
 					    }else if(textcmd("forceintermission", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 			                break;
@@ -2543,8 +2591,8 @@ namespace server
 							
 						}else if(textcmd("me", text)) {
 							if(text[3] == ' ') {
-							defformatstring(s)("\f0%s\f7%s", ci->name, text+3); //not spaced out because ciname already supplies a space.
-							sendservmsg(s);
+								defformatstring(s)("\f0%s\f7%s", ci->name, text+3); 
+								sendservmsg(s);
 							break;
 								
 						}else if(text[3] == '\0') {
@@ -2553,8 +2601,8 @@ namespace server
 						}
 						}else if(textcmd("say", text)) {
 							if(text[4] == ' ') {
-							defformatstring(d)("\f7%s", text+5);
-							sendservmsg(d);
+								defformatstring(d)("\f7%s", text+5);
+								sendservmsg(d);
 							break;
 								
 						}else if(text[4] == '\0') {
@@ -2581,12 +2629,12 @@ namespace server
 					   }else if(textcmd("whisper", text)) {
 						   if(text[8] == ' ') {
 						   if(text[10] == ' '){
-						   int i = text[9] - '0';
-						   if (clients[i]->connected){
-						   defformatstring(s)("\f0%s \f7whispers to you: %s", ci->name, text+11);
-						   sendf(i, 1, "ris", N_SERVMSG, s);
-						   defformatstring(d)("Whisper \f2\"%s\" \f7sent to: \f0%s", text+11, ci->name);
-						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
+						   	int i = text[9] - '0';
+						    if (clients[i]->connected){
+						    	defformatstring(s)("\f0%s \f7whispers to you: %s", ci->name, text+11);
+						    	sendf(i, 1, "ris", N_SERVMSG, s);
+						    	defformatstring(d)("Whisper \f2\"%s\" \f7sent to: \f0%s", text+11, ci->name);
+						    	sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
 						   break;	   
