@@ -2448,7 +2448,11 @@ namespace server
 						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
 							if(textcmd("allowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#allowmaster\nDescription: allow the \"/setmaster 1\" command");break;}
 							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: disallow the \"/setmaster 1\" command");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, fragall, forceintermission, allowmaster, disallowmaster and stopserver\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("givemaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#givemaster (cn)\nDescription: give master to another client");break;}
+							if(textcmd("ip", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ip (cn)\nDescription: get the ip of another client");break;}
+							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: temporarily kick another client (they can reconnect immediately)");break;}
+							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: ban another client permanently");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, fragall, forceintermission, allowmaster, disallowmaster, ip, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
 						}else if(textcmd("selfinfo", text)){
