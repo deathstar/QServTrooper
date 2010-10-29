@@ -2483,7 +2483,7 @@ namespace server
 									b.time = gamemillis;
 									b.ip = getclientip(cn->clientnum);
 									allowedips.removeobj(b.ip);
-									disconnect_client(cn->clientnum, DISC_KICK);
+									disconnect_client(cn->clientnum, DISC_BANNED);
 								break;
 								}
 						}else if(text[4] == '\0') {

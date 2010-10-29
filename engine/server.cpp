@@ -300,12 +300,13 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
 #endif
 }
 
-const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };
+const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow", "banned" };
 
 void disconnect_client(int n, int reason)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     enet_peer_disconnect(clients[n]->peer, reason);
+	printf("Disconnected:"); //ties in with name on disconnect.
     server::clientdisconnect(n);
     clients[n]->type = ST_EMPTY;
     clients[n]->peer->data = NULL;
