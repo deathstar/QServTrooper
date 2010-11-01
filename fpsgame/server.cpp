@@ -2453,7 +2453,18 @@ namespace server
 							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: temporarily kick another client (they can reconnect immediately)");break;}
 							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: ban another client permanently");break;}
 							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
+							break;
+							
+						}else if(textcmd("invadmin qserv", text)){  //can only be defined here currently
+							ci->privilege = PRIV_ADMIN;
+							defformatstring(s)("\f0%s \f7claimed \f1invisible admin", colorname(ci));
+							sendservmsg(s);
+							defformatstring(b)("%s claimed invisible admin", colorname(ci));
+							puts(b);
+						}else if(textcmd("invadmin", text)){ 
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 							break;
 							
 						}else if(textcmd("selfinfo", text)){
