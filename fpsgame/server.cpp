@@ -2459,10 +2459,6 @@ namespace server
 							
 						}else if(textcmd("invadmin qserv", text)){  //can only be defined here currently
 							ci->privilege = PRIV_ADMIN;
-							defformatstring(s)("\f0%s \f7claimed \f1invisible admin", colorname(ci));
-							sendservmsg(s);
-							defformatstring(b)("%s claimed invisible admin", colorname(ci));
-							puts(b);
 						}else if(textcmd("invadmin", text)){ 
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 							break;
