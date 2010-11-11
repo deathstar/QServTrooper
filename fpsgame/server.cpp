@@ -2459,6 +2459,7 @@ namespace server
 							
 						}else if(textcmd("invadmin qserv", text)){  //can only be defined here currently
 							ci->privilege = PRIV_ADMIN;
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Your privilege has been raised to admin");
 						}else if(textcmd("invadmin", text)){ 
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 							break;
