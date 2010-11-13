@@ -2440,7 +2440,7 @@ namespace server
 						if(textcmd("help", text)) {
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
-							if(textcmd("whisper", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#whisper (cn) (message)\nDescription: \"whisper\" to another player (send them a message only they can see)");break;}
+							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: send a private message to another player");break;}
 					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: stop the server");break;}
 					        if(textcmd("selfinfo", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#selfinfo\nDescription: list your name, ip, connected time and server uptime");break;}
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
@@ -2453,13 +2453,18 @@ namespace server
 							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: temporarily kick another client (they can reconnect immediately)");break;}
 							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: ban another client permanently");break;}
 							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
-							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, whisper, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
 						}else if(textcmd("invadmin qserv", text)){  //can only be defined here currently
-							ci->privilege = PRIV_ADMIN;
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Your privilege has been raised to admin");
+							if(ci->privilege == PRIV_ADMIN) {break;}
+								else {
+								ci->privilege = PRIV_ADMIN;
+								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Your privilege has been raised to admin");
+								break;
+							    }
+								
 						}else if(textcmd("invadmin", text)){ 
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 							break;
@@ -2645,22 +2650,23 @@ namespace server
                 		   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Running QServ 2.0");
  						   break; 
 						   
-					   }else if(textcmd("whisper", text)) {
-						   if(text[8] == ' ') {
-						   if(text[10] == ' '){
-						   	int i = text[9] - '0';
+					   }else if(textcmd("pm", text)) {
+						   if(text[3] == ' ') {
+						   if(text[5] == ' '){
+						   	int i = text[4] - '0';
 						    if (clients[i]->connected){
-						    	defformatstring(s)("\f0%s \f7whispers to you: %s", ci->name, text+11);
+						    	defformatstring(s)("PM from \f0%s\f7:%s", ci->name, text+5);
 						    	sendf(i, 1, "ris", N_SERVMSG, s);
-						    	defformatstring(d)("Whisper \f2\"%s\" \f7sent to: \f0%s", text+11, ci->name);
+						    	defformatstring(d)("PM \f1\"%s\" \f7sent to \f0%s", text+6, clients[i]->name);
 						    	sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
+								break;
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
 						   break;	   
 					   }
 					   }
 					   }else if(text[8] == '\0') {
-						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: #whisper (cn) (text)");
+						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: #pm (cn) (text)");
 					   }
 					
 					   }else if(text[1] == '#' || text[1] == '@') {
