@@ -523,8 +523,8 @@ namespace server
     {
         int n = 0;
         loopv(clients) 
-        {
-            clientinfo *ci = clients[i];
+        { 
+            clientinfo *ci = clients[i]; 
             if(ci->clientnum!=exclude && (!nospec || ci->state.state!=CS_SPECTATOR || (priv && (ci->privilege || ci->local))) && (!noai || ci->state.aitype == AI_NONE)) n++;
         }
         return n;
