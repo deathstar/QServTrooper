@@ -9,7 +9,7 @@ void fatal(const char *s, ...)
     void cleanupserver();
     cleanupserver(); 
     defvformatstring(msg,s,s);
-    printf("servererror: %s\n", msg); 
+    printf("\33[31mFatal Error: %s\33[0m\n", msg); 
     exit(EXIT_FAILURE); 
 }
 
@@ -300,7 +300,7 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
 #endif
 }
 
-const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow", "banned" };
+const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server is full", "connection timed out", "overflow", "banned"};
 
 void disconnect_client(int n, int reason)
 {
@@ -403,7 +403,7 @@ ENetSocket connectmaster()
     if(masteraddress.host == ENET_HOST_ANY)
     {
 #ifdef STANDALONE
-        printf("looking up %s...\n", mastername);
+        printf("\33[33mLooking up %s...\33[0m\n", mastername);
 #endif
         masteraddress.port = masterport;
         if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
@@ -458,10 +458,10 @@ void processmasterinput()
         int cmdlen = args - input;
         while(args < end && isspace(*args)) args++;
 
-        if(!strncmp(input, "failreg", cmdlen))
-            conoutf(CON_ERROR, "master server registration failed: %s", args);
+        if(!strncmp(input, "failreg", cmdlen)) 
+            conoutf(CON_ERROR, "Master server registration failed: %s", args);
         else if(!strncmp(input, "succreg", cmdlen))
-            conoutf("master server registration succeeded");
+        	conoutf("Master server registration succeeded");
         else server::processmasterinput(input, cmdlen, args);
 
         masterinpos = end - masterin.getbuf();
@@ -710,7 +710,7 @@ void rundedicatedserver()
     #ifdef WIN32
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
     #endif
-    printf("dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
+    printf("\33[32mDedicated server started, waiting for clients...\nCtrl-C to exit\33[0m\n\n");
     for(;;) serverslice(true, 5);
 }
 
@@ -737,7 +737,7 @@ bool setuplistenserver(bool dedicated)
         else serveraddress.host = address.host;
     }
     serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, serveruprate);
-    if(!serverhost) return servererror(dedicated, "could not create server host");
+    if(!serverhost) return servererror(dedicated, "server is already running");
     loopi(maxclients) serverhost->peers[i].data = NULL;
     address.port = server::serverinfoport(serverport > 0 ? serverport : -1);
     pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
