@@ -1566,10 +1566,11 @@ namespace server
 			            { 
 			                actor->state.teamkills++;
 			                target->state.deaths++;
-
+							if(actor == target) {} //if the target kills himself, we don't echo anything
+							else {
 			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 						    sendservmsg(msg);
-							if(actor == target) {} //if suicide in teammode do not echo fragged a teammate message.
+						    }
 			            }
             if(actor!=target && isteam(actor->team, target->team)) actor->state.teamkills++;
             int fragvalue = smode ? smode->fragvalue(target, actor) : (target==actor || isteam(target->team, actor->team) ? -1 : 1);
@@ -2647,7 +2648,7 @@ namespace server
 					       break;
 					       
                        }else if(textcmd("info", text)){
-                		   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Running QServ 2.0 %s", qserv_version);
+                		   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Running QServ 2.0");
  						   break; 
 						   
 					   }else if(textcmd("pm", text)) {
@@ -2682,7 +2683,7 @@ namespace server
                     }
       
 					for (int a=0; a<(strlen(*blkmsg)-1); a++) {
-						textblk(blkmsg[a], text, ci);
+					textblk(blkmsg[a], text, ci);
 					}
 					QUEUE_AI;
 					QUEUE_INT(N_TEXT);
