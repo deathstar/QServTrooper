@@ -2647,7 +2647,7 @@ namespace server
 					       break;
 					       
                        }else if(textcmd("info", text)){
-                		   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Running QServ 2.0");
+                		   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Running QServ 2.0 %s", qserv_version);
  						   break; 
 						   
 					   }else if(textcmd("pm", text)) {
