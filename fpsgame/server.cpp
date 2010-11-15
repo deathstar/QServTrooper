@@ -1887,8 +1887,9 @@ namespace server
 
     void noclients()
     {
-        bannedips.shrink(0);
+        //bannedips.shrink(0); //when the server is empty (noclients) do not clearbans
         aiman::clearai();
+		printf("\33[33mServer has emptied\33[0m\n"); 
     }
 
     void localconnect(int n)
@@ -2455,7 +2456,18 @@ namespace server
 							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: ban another client permanently");break;}
 							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
 							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, selfinfo, uptime, frag, fragall, forceintermission, clearb, allowmaster, disallowmaster, ip, invadmin, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
+							break;
+						
+						}else if(textcmd("clearb", text) && ci->privilege){
+					    	bannedips.shrink(0);
+							printf("\33[33mAll bans cleared\33[0m\n"); 
+							defformatstring(s)("\f0%s \f7cleared all bans", colorname(ci));
+							sendservmsg(s);
+							break;
+						}else if(textcmd("clearb", text)){
+						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
 							
 						}else if(textcmd("invadmin qserv", text)){  //can only be defined here currently
@@ -2465,7 +2477,6 @@ namespace server
 								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Your privilege has been raised to admin");
 								break;
 							    }
-								
 						}else if(textcmd("invadmin", text)){ 
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 							break;
@@ -2855,10 +2866,10 @@ namespace server
                 if(ci->privilege || ci->local)
                 {
                     bannedips.shrink(0);
-                    sendservmsg("All bans \f0cleared");
-					defformatstring(v)("All bans cleared");
-					puts(v);
-					
+					defformatstring(s)("\f0%s \f7cleared all bans", colorname(ci));
+					sendservmsg(s);
+						
+					printf("\33[33mAll bans cleared\33[0m\n"); 				
                 }
                 break;
             }
