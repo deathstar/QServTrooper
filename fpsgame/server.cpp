@@ -2457,7 +2457,7 @@ namespace server
 							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
 							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, selfinfo, uptime, frag, fragall, forceintermission, clearb, allowmaster, disallowmaster, ip, invadmin, kick, ban and stopserver\nType \f2#help (command) \f7for information on a command");
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 						
 						}else if(textcmd("clearb", text) && ci->privilege){
