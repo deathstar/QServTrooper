@@ -2446,7 +2446,7 @@ namespace server
 					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: stop the server");break;}
 					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: get the current QServ version");break;}
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
-							if(textcmd("fragall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#fragall\nDescription: frag everyone on the server");break;}
+							if(textcmd("killall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#killall\nDescription: frag everyone on the server");break;}
 						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
 							if(textcmd("allowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#allowmaster\nDescription: allow the \"/setmaster 1\" command");break;}
 							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: disallow the \"/setmaster 1\" command");break;}
@@ -2457,7 +2457,7 @@ namespace server
 							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
 							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, killall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 						
 						}else if(textcmd("clearb", text) && ci->privilege){
@@ -2589,13 +2589,17 @@ namespace server
 							defformatstring(f)("Server Uptime: \f2%d \f7seconds", (gamemillis/1000)+servuptime);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
-							
+	
 						}else if(textcmd("frag", text) && ci->privilege) {
 							if(text[5] == ' ') {
 								int v = text[6] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
 								if (cn->connected){
-									if(cn->state.state==CS_ALIVE) suicide(cn);
+									if(cn->state.state==CS_ALIVE) {
+									suicide(cn);
+									defformatstring(s)("\f0%s \f7suicided \f6%s", colorname(ci), colorname(cn));
+									sendservmsg(s);
+									}
 							break;
 							}
 						}else if(text[5] == '\0') {
@@ -2606,17 +2610,14 @@ namespace server
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
 						
-						}else if(textcmd("fragall", text) && ci->privilege){
-                            defformatstring(s)("ATTENTION: client %s fragged everyone on the server\n", colorname(ci));
-					        puts(s);
-                            loopv(clients) {
+						}else if(textcmd("killall", text) && ci->privilege){
+							loopv(clients) {
 				            clientinfo *t = clients[i];
-					        if(t->state.state==CS_ALIVE) suicide(t);
+					        if(t->state.state==CS_ALIVE) {suicide(t);}
 						    }
 					     	break;
-							
-						}else if(textcmd("fragall", text)){
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
+						}else if(textcmd("killall", text)){
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 					     	break;
 							
 						}else if(textcmd("me", text)) {
