@@ -2646,8 +2646,7 @@ namespace server
 							break;	
 						}
                         }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
-                            defformatstring(s)("ATTENTION: Server stopped by %s\n", colorname(ci));
-							puts(s);
+                            printf("\33[31mServer stopped by: %s\33[0m\n", colorname(ci)); 
                             kicknonlocalclients();
                             exit(EXIT_FAILURE);
        						break; 
