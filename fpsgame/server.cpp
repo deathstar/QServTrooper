@@ -2444,7 +2444,7 @@ namespace server
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
 							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: send a private message to another player");break;}
 					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: stop the server");break;}
-					        if(textcmd("selfinfo", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#selfinfo\nDescription: list your name, ip, connected time and server uptime");break;}
+					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: get the current QServ version");break;}
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
 							if(textcmd("fragall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#fragall\nDescription: frag everyone on the server");break;}
 						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
@@ -2457,7 +2457,7 @@ namespace server
 							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
 							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, selfinfo, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, fragall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 						
 						}else if(textcmd("clearb", text) && ci->privilege){
@@ -2480,12 +2480,6 @@ namespace server
 						}else if(textcmd("invadmin", text)){ 
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 							break;
-							
-						}else if(textcmd("selfinfo", text)){
-							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
-							defformatstring(f)("Name: \f0%s \f7| Ip: \f2%s \f7| Connected for: \f2%d \f7seconds | Server Uptime: \f2%d \f7seconds", colorname(ci), ci->ip, ci->connectedmillis, (gamemillis/1000)+servuptime);
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
-                          	break;
 
 						}else if(textcmd("ip", text) && ci->privilege) { 
 							if(text[3] == ' ') {
@@ -2650,15 +2644,12 @@ namespace server
                             kicknonlocalclients();
                             exit(EXIT_FAILURE);
        						break; 
-							
-                       }else if(textcmd("stopserver", text)){
-					       defformatstring(s)("WARNING: client %s attempted to stop the server (insufficent permissions)\n", colorname(ci));
-						   puts(s);
+					 	}else if(textcmd("stopserver", text)){
 					       sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");  
 					       break;
 					       
                        }else if(textcmd("info", text)){
-                		   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Running QServ 2.5");
+						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Server running \f4QServ 1.5\f7 - \f1www.bit.ly/qserv");  
  						   break; 
 						   
 					   }else if(textcmd("pm", text)) {
