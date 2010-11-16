@@ -2660,7 +2660,7 @@ namespace server
 						    if (clients[i]->connected){
 						    	defformatstring(s)("PM from \f0%s\f7:%s", ci->name, text+5);
 						    	sendf(i, 1, "ris", N_SERVMSG, s);
-						    	defformatstring(d)("PM \f1\"%s\" \f7sent to \f0%s", text+6, clients[i]->name);
+						    	defformatstring(d)("PM \f1\"%s\" \f7sent to \f0%s", text+6, colorname(clients[i]));
 						    	sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
 								break;
 					   }else{
