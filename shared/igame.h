@@ -91,6 +91,7 @@ namespace game
  
 namespace server
 {
+	extern void startserv();
     extern void *newclientinfo();
     extern void deleteclientinfo(void *ci);
     extern void serverinit();

@@ -511,7 +511,13 @@ namespace server
 			bad=false;
 		}
 	} 
-	//code add end
+	
+	void startserv() 
+	{
+	char *servername = serverdesc;
+	char *passwrd = adminpass;
+	printf("\33[34mServer with name \"%s\" and admin password \"%s\" started on port %i \n\33[31mCtrl-C to exit and stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
+	}
 
     void serverinit()
     {

@@ -710,7 +710,7 @@ void rundedicatedserver()
     #ifdef WIN32
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
     #endif
-    printf("\33[32mDedicated server started, waiting for clients...\nCtrl-C to exit\33[0m\n\n");
+	server::startserv();
     for(;;) serverslice(true, 5);
 }
 
