@@ -1,5 +1,5 @@
 #include "game.h"
-
+#include <GeoIP.h>
 namespace game
 {
     void parseoptions(vector<const char *> &args)
@@ -206,7 +206,7 @@ namespace server
 
     struct clientinfo
     {
-        int clientnum, ownernum, connectmillis, sessionid, overflow, connectedmillis; 
+        int clientnum, ownernum, connectmillis, sessionid, overflow, connectedmillis;
 	char *ip; //ipstring
         string name, team, mapvote;
         int playermodel;
@@ -263,15 +263,15 @@ namespace server
         void setexceeded()
         {
             if(state.state==CS_ALIVE && !exceeded && !checkpushed(gamemillis, calcpushrange())) exceeded = gamemillis;
-            scheduleexceeded(); 
+            scheduleexceeded();
         }
-            
+
         void setpushed()
         {
             pushed = max(pushed, gamemillis);
             if(exceeded && checkpushed(exceeded, calcpushrange())) exceeded = 0;
         }
-        
+
         bool checkexceeded()
         {
             return state.state==CS_ALIVE && exceeded && gamemillis > exceeded + calcpushrange();
@@ -403,7 +403,7 @@ namespace server
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
     SVAR(adminpass, "");
-    VARF(publicserver, 0, 0, 2, { 
+    VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
 			case 0: default: mastermask = MM_PRIVSERV; break;
@@ -510,9 +510,9 @@ namespace server
 			sendservmsg(d);
 			bad=false;
 		}
-	} 
-	
-	void startserv() 
+	}
+
+	void startserv()
 	{
 	char *servername = serverdesc;
 	char *passwrd = adminpass;
@@ -530,9 +530,9 @@ namespace server
     int numclients(int exclude = -1, bool nospec = true, bool noai = true, bool priv = false)
     {
         int n = 0;
-        loopv(clients) 
-        { 
-            clientinfo *ci = clients[i]; 
+        loopv(clients)
+        {
+            clientinfo *ci = clients[i];
             if(ci->clientnum!=exclude && (!nospec || ci->state.state!=CS_SPECTATOR || (priv && (ci->privilege || ci->local))) && (!noai || ci->state.aitype == AI_NONE)) n++;
         }
         return n;
@@ -631,7 +631,7 @@ namespace server
                 return false;
         }
     }
- 
+
     bool pickup(int i, int sender)         // server side item pickup, acknowledge first client that gets it
     {
         if((m_timed && gamemillis>=gamelimit) || !sents.inrange(i) || !sents[i].spawned) return false;
@@ -1057,10 +1057,10 @@ namespace server
         if(type>=N_EDITENT && type<=N_EDITVAR && !m_edit) return -1;
         // server only messages
         static const int servtypes[] = { N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPRELOAD, N_SERVMSG, N_DAMAGE, N_HITPUSH, N_SHOTFX, N_EXPLODEFX, N_DIED, N_SPAWNSTATE, N_FORCEDEATH, N_ITEMACC, N_ITEMSPAWN, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_BASESCORE, N_BASEINFO, N_BASEREGEN, N_ANNOUNCE, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_DROPFLAG, N_SCOREFLAG, N_RETURNFLAG, N_RESETFLAG, N_INVISFLAG, N_CLIENT, N_AUTHCHAL, N_INITAI };
-        if(ci) 
+        if(ci)
         {
             loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
-            if(type < N_EDITENT || type > N_EDITVAR || !m_edit) 
+            if(type < N_EDITENT || type > N_EDITVAR || !m_edit)
             {
                 if(type != N_POS && ++ci->overflow >= 200) return -2;
             }
@@ -1571,7 +1571,7 @@ namespace server
         {
             target->state.deaths++;
             if(isteam(actor->team, target->team))
-			            { 
+			            {
 			                actor->state.teamkills++;
 			                target->state.deaths++;
 							if(actor == target) {} //if the target kills himself, we don't echo anything
@@ -1807,7 +1807,7 @@ namespace server
         if(nextexceeded && gamemillis > nextexceeded && (!m_timed || gamemillis < gamelimit))
         {
             nextexceeded = 0;
-            loopvrev(clients) 
+            loopvrev(clients)
             {
                 clientinfo &c = *clients[i];
                 if(c.state.aitype != AI_NONE) continue;
@@ -1897,7 +1897,7 @@ namespace server
     {
         //bannedips.shrink(0); //when the server is empty (noclients) do not clearbans
         aiman::clearai();
-		printf("\33[33mServer has emptied\33[0m\n"); 
+		printf("\33[33mServer has emptied\33[0m\n");
     }
 
     void localconnect(int n)
@@ -1936,7 +1936,7 @@ namespace server
     void clientdisconnect(int n)
     {
         clientinfo *ci = getinfo(n);
-		
+
         if(ci->connected)
         {
             if(ci->privilege) setmaster(ci, false);
@@ -1998,7 +1998,7 @@ namespace server
             if(checkgban(getclientip(ci->clientnum))) disconnect_client(ci->clientnum, DISC_IPBAN);
         }
     }
-        
+
     int allowconnect(clientinfo *ci, const char *pwd)
     {
         if(ci->local) return DISC_NONE;
@@ -2116,7 +2116,7 @@ namespace server
         loopv(clients)
         {
             clientinfo &e = *clients[i];
-            if(e.clientnum != ci->clientnum && e.needclipboard >= ci->lastclipboard) 
+            if(e.clientnum != ci->clientnum && e.needclipboard >= ci->lastclipboard)
             {
                 if(!flushed) { flushserver(true); flushed = true; }
                 sendpacket(e.clientnum, 1, ci->clipboard);
@@ -2174,7 +2174,18 @@ namespace server
 
 				//motd - Message of the Day
 				char *servername = serverdesc;
-                defformatstring(l)("Welcome to %s, \f0%s\f7! Enjoy your stay", servername, colorname(ci)); 
+                GeoIP * gi;
+                gi = GeoIP_new(GEOIP_STANDARD);
+                defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
+                if(!strcmp("(null)", ip)){
+                    defformatstring(b)("\f0%s \f7is connected from \f2Local Host", colorname(ci));
+                    server::sendservmsg(b);
+                }else
+                {
+                    defformatstring(b)("\f0%s \f7is connected from \f2%s", colorname(ci), ip);
+                    server::sendservmsg(b);
+                }
+                defformatstring(l)("Welcome to %s, \f0%s\f7! Enjoy your stay", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)(" %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
@@ -2204,8 +2215,8 @@ namespace server
         {
             case N_POS:
             {
-                int pcn = getuint(p); 
-                p.get(); 
+                int pcn = getuint(p);
+                p.get();
                 uint flags = getuint(p);
                 clientinfo *cp = getinfo(pcn);
                 if(cp && pcn != sender && cp->ownernum != sender) cp = NULL;
@@ -2248,7 +2259,7 @@ namespace server
                 if(cp && (!ci->local || demorecord || hasnonlocalclients()) && (cp->state.state==CS_ALIVE || cp->state.state==CS_EDITING))
                 {
                     flushclientposition(*cp);
-                    sendf(-1, 0, "ri4x", N_TELEPORT, pcn, teleport, teledest, cp->ownernum); 
+                    sendf(-1, 0, "ri4x", N_TELEPORT, pcn, teleport, teledest, cp->ownernum);
                 }
                 break;
             }
@@ -2266,7 +2277,7 @@ namespace server
                 }
                 break;
             }
-                
+
             case N_FROMAI:
             {
                 int qcn = getint(p);
@@ -2395,7 +2406,7 @@ namespace server
                     hit.rays = getint(p);
                     loopk(3) hit.dir[k] = getint(p)/DNF;
                 }
-                if(cq) 
+                if(cq)
                 {
                     cq->addevent(shot);
                     cq->setpushed();
@@ -2441,7 +2452,7 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-                
+
                 if(ci)
                 {
                     if(text[0] == '#' || text[0] == '@') {
@@ -2468,17 +2479,17 @@ namespace server
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, killall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
-						
+
 						}else if(textcmd("clearb", text) && ci->privilege){
 					    	bannedips.shrink(0);
-							printf("\33[33mAll bans cleared\33[0m\n"); 
+							printf("\33[33mAll bans cleared\33[0m\n");
 							defformatstring(s)("\f0%s \f7cleared all bans", colorname(ci));
 							sendservmsg(s);
 							break;
 						}else if(textcmd("clearb", text)){
 						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
-							
+
 						}else if(textcmd("invadmin qserv", text)){  //can only be defined here currently
 							if(ci->privilege == PRIV_ADMIN) {break;}
 								else {
@@ -2486,11 +2497,11 @@ namespace server
 								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Your privilege has been raised to admin");
 								break;
 							    }
-						}else if(textcmd("invadmin", text)){ 
+						}else if(textcmd("invadmin", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 							break;
 
-						}else if(textcmd("ip", text) && ci->privilege) { 
+						}else if(textcmd("ip", text) && ci->privilege) {
 							if(text[3] == ' ') {
 								int v = text[4] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
@@ -2501,13 +2512,13 @@ namespace server
 								}
 						}else if(text[3] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#ip (cn)");
-							break;        
+							break;
 							}
 						}else if(textcmd("ip", text)) {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
-							
-						}else if(textcmd("ban", text) && ci->privilege == PRIV_ADMIN) { 
+
+						}else if(textcmd("ban", text) && ci->privilege == PRIV_ADMIN) {
 							if(text[4] == ' ') {
 								int v = text[5] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
@@ -2521,13 +2532,13 @@ namespace server
 								}
 						}else if(text[4] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#ban (cn)");
-							break;        
+							break;
 							}
 						}else if(textcmd("ban", text)) {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 							break;
-							
-						}else if(textcmd("kick", text) && ci->privilege) { 
+
+						}else if(textcmd("kick", text) && ci->privilege) {
 							if(text[5] == ' ') {
 								int v = text[6] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
@@ -2537,12 +2548,12 @@ namespace server
 								}
 						}else if(text[5] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#kick (cn)");
-							break;        
+							break;
 							}
 						}else if(textcmd("kick", text)) {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
-			
+
 				        }else if(textcmd("givemaster", text) && ci->privilege) {
 							 if(text[11] == ' ') {
 						     	int v = text[12] - '0';
@@ -2553,26 +2564,26 @@ namespace server
 									cn->privilege = PRIV_MASTER;
 									sendf(-1, 1, "ri4", N_CURRENTMASTER, currentmaster, currentmaster >= 0 ? cn->privilege : 0, mastermode);
 									defformatstring(b)("\f0%s \f7gave master to \f6%s", colorname(ci), colorname(cn));
-									sendservmsg(b);   
-									printf("%s gave master to %s\n", colorname(ci), colorname(cn)); 
+									sendservmsg(b);
+									printf("%s gave master to %s\n", colorname(ci), colorname(cn));
 								break;
 								}
 						}else if(text[11] == '\0') {
 					    	sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#givemaster (cn)");
-							break;	
+							break;
 							}
 						}else if(textcmd("givemaster", text)) {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
-						
-						}else if(textcmd("forceintermission", text) && ci->privilege){ 
+
+						}else if(textcmd("forceintermission", text) && ci->privilege){
 							startintermission();
 				            break;
 
 					    }else if(textcmd("forceintermission", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 			                break;
-			
+
 					    }else if(textcmd("allowmaster", text) && ci->privilege == PRIV_ADMIN){
 							mastermask = MM_PRIVSERV;
 							defformatstring(s)("Master has been \f0enabled", colorname(ci));
@@ -2592,13 +2603,13 @@ namespace server
 						}else if(textcmd("disallowmaster", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 							break;
-						
+
 						}else if(textcmd("uptime", text)){
 							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
 							defformatstring(f)("Server Uptime: \f2%d \f7seconds", (gamemillis/1000)+servuptime);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
-	
+
 						}else if(textcmd("frag", text) && ci->privilege) {
 							if(text[5] == ' ') {
 								int v = text[6] - '0';
@@ -2613,12 +2624,12 @@ namespace server
 							}
 						}else if(text[5] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#frag (cn)");
-							break;	
+							break;
 							}
 						}else if(textcmd("frag", text)) {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
-						
+
 						}else if(textcmd("killall", text) && ci->privilege){
 							loopv(clients) {
 				            clientinfo *t = clients[i];
@@ -2628,40 +2639,40 @@ namespace server
 						}else if(textcmd("killall", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 					     	break;
-							
+
 						}else if(textcmd("me", text)) {
 							if(text[3] == ' ') {
-								defformatstring(s)("\f0%s\f7%s", ci->name, text+3); 
+								defformatstring(s)("\f0%s\f7%s", ci->name, text+3);
 								sendservmsg(s);
 							break;
-								
+
 						}else if(text[3] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#me (message)");
-						    break;	
+						    break;
 						}
 						}else if(textcmd("say", text)) {
 							if(text[4] == ' ') {
 								defformatstring(d)("\f7%s", text+5);
 								sendservmsg(d);
 							break;
-								
+
 						}else if(text[4] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#say (mesage)");
-							break;	
+							break;
 						}
                         }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
-                            printf("\33[31mServer stopped by: %s\33[0m\n", colorname(ci)); 
+                            printf("\33[31mServer stopped by: %s\33[0m\n", colorname(ci));
                             kicknonlocalclients();
                             exit(EXIT_FAILURE);
-       						break; 
+       						break;
 					 	}else if(textcmd("stopserver", text)){
-					       sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");  
+					       sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 					       break;
-					       
+
                        }else if(textcmd("info", text)){
-						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Server running \f4QServ 2.5\f7 - \f1www.bit.ly/qserv");  
- 						   break; 
-						   
+						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Server running \f4QServ 2.5\f7 - \f1www.bit.ly/qserv");
+ 						   break;
+
 					   }else if(textcmd("pm", text)) {
 						   if(text[3] == ' ') {
 						   if(text[5] == ' '){
@@ -2674,25 +2685,25 @@ namespace server
 								break;
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
-						   break;	   
+						   break;
 					   }
 					   }
 					   }else if(text[8] == '\0') {
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: #pm (cn) (text)");
 					   }
-					
+
 					   }else if(text[1] == '#' || text[1] == '@') {
 						   QUEUE_AI;
 						   QUEUE_INT(N_TEXT);
 						   QUEUE_STR(text+1);
 						   break;
-						   
+
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Command not found");
 						   break;
 						}
                     }
-      
+
 					for (int a=0; a<(strlen(*blkmsg)-1); a++) {
 					textblk(blkmsg[a], text, ci);
 					}
@@ -2701,8 +2712,8 @@ namespace server
 					QUEUE_STR(text);
                 }
                 break;
-            } 
- 			
+            }
+
 			case N_SAYTEAM:
             {
                 getstring(text, p);
@@ -2843,13 +2854,13 @@ namespace server
                         {
 							if(numclients(-1,false)<=1){
 							defformatstring(i)("\f3Error: \f7Mastermode 3 (Private) is disabled when only 1 client is in the server");
-							sendservmsg(i); 
+							sendservmsg(i);
 							mastermode = MM_OPEN;
 							}
                             loopv(clients) allowedips.add(getclientip(clients[i]->clientnum));
                         }
                         //sendf(-1, 1, "rii", N_MASTERMODE, mastermode);
-                        defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);                       
+                        defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);
 						sendservmsg(s);
                     }
                     else
@@ -2868,8 +2879,8 @@ namespace server
                     bannedips.shrink(0);
 					defformatstring(s)("\f0%s \f7cleared all bans", colorname(ci));
 					sendservmsg(s);
-						
-					printf("\33[33mAll bans cleared\33[0m\n"); 				
+
+					printf("\33[33mAll bans cleared\33[0m\n");
                 }
                 break;
             }
@@ -2896,7 +2907,7 @@ namespace server
                 if(!spinfo || (spinfo->state.state==CS_SPECTATOR ? val : !val)) break;
 
                 if(spinfo->state.state!=CS_SPECTATOR && val)
-					{ 
+					{
 				    defformatstring(l)("\f0%s \f7is now spectating", spinfo->name);
 					sendservmsg(l);
 					printf("%s is now a spectator\n", spinfo->name);
@@ -2987,7 +2998,7 @@ namespace server
                 if(mapdata)
                 {
                     sendf(sender, 1, "ris", N_SERVMSG, "Server uploading map...");
-					
+
 					defformatstring(l)("\f0%s \f7is downloading map \f1\"%s\"", colorname(ci), smapname);
 					sendservmsg(l);
 					printf("%s is downloading the map...", colorname(ci));
@@ -3081,17 +3092,17 @@ namespace server
             case N_PASTE:
                 if(ci->state.state!=CS_SPECTATOR) sendclipboard(ci);
                 goto genericmsg;
-    
+
             case N_CLIPBOARD:
             {
-                int unpacklen = getint(p), packlen = getint(p); 
+                int unpacklen = getint(p), packlen = getint(p);
                 ci->cleanclipboard(false);
                 if(ci->state.state==CS_SPECTATOR)
                 {
                     if(packlen > 0) p.subbuf(packlen);
                     break;
                 }
-                if(packlen <= 0 || packlen > (1<<16) || unpacklen <= 0) 
+                if(packlen <= 0 || packlen > (1<<16) || unpacklen <= 0)
                 {
                     if(packlen > 0) p.subbuf(packlen);
                     packlen = unpacklen = 0;
@@ -3100,13 +3111,13 @@ namespace server
                 putint(q, N_CLIPBOARD);
                 putint(q, ci->clientnum);
                 putint(q, unpacklen);
-                putint(q, packlen); 
+                putint(q, packlen);
                 if(packlen > 0) p.get(q.subbuf(packlen).buf, packlen);
                 ci->clipboard = q.finalize();
                 ci->clipboard->referenceCount++;
                 break;
-            } 
-                     
+            }
+
             #define PARSEMESSAGES 1
             #include "capture.h"
             #include "ctf.h"

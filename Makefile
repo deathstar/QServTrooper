@@ -10,7 +10,7 @@ qserv_SRCS=shared/crypto.cpp shared/stream.cpp shared/tools.cpp engine/command.c
 qserv_EXTRA_DEPS=$(enetdir)/.libs/libenet.a $(eventdir)/.libs/libevent.a
 qserv_CXXFLAGS=-Wall -fomit-frame-pointer -fsigned-char -Ienet/include -I$(eventdir)/include -I$(eventdir) -DSTANDALONE -Ishared -Iengine
 qserv_LDFLAGS=$(enetdir)/.libs/libenet.a $(eventdir)/.libs/libevent.a
-qserv_LIBS=z resolv
+qserv_LIBS=GeoIP z resolv
 extra=config.h config.mk
 
 ifeq ($(DEBUG),true)
