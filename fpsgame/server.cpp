@@ -1748,20 +1748,23 @@ namespace server
         }
     }
     vector<char *> banners;
-    ICOMMAND(addbaner, "s", (char *text), {
+    ICOMMAND(addbanner, "s", (char *text), {
              banners.add(newstring(text));
     });
 
-    VAR(bannermillis, 0, 10000, 500000);
+    VAR(bannermillis, 1000, 10000, 500000);
     void updateBanner()
     {
         static int lastshow = lastmillis;
-        if((lastmillis-lastshow) >= bannermillis)
+        if(banners.length() > 0)
         {
-            defformatstring(text)("%s", banners[rnd(banners.length())]);
-            sendservmsg(text);
-            lastshow = lastmillis;
-        }else return;
+            if((lastmillis-lastshow) >= bannermillis)
+            {
+                defformatstring(text)("%s", banners[rnd(banners.length())]);
+                sendservmsg(text);
+                lastshow = lastmillis;
+            }else return;
+        }
     }
 
     void cleartimedevents(clientinfo *ci)
