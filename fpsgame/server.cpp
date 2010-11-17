@@ -1747,15 +1747,19 @@ namespace server
             flushevents(ci, gamemillis);
         }
     }
+    vector<char *> banners;
+    ICOMMAND(addbaner, "s", (char *text), {
+             banners.add(newstring(text));
+    });
 
-    SVAR(banner, "");
     VAR(bannermillis, 0, 10000, 500000);
     void updateBanner()
     {
         static int lastshow = lastmillis;
         if((lastmillis-lastshow) >= bannermillis)
         {
-            server::sendservmsg(banner);
+            defformatstring(text)("%s", banners[rnd(banners.length())]);
+            sendservmsg(text);
             lastshow = lastmillis;
         }else return;
     }
