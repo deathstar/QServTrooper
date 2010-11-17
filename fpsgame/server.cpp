@@ -1748,6 +1748,18 @@ namespace server
         }
     }
 
+    SVAR(banner, "");
+    VAR(bannermillis, 0, 10000, 500000);
+    void updateBanner()
+    {
+        static int lastshow = lastmillis;
+        if((lastmillis-lastshow) >= bannermillis)
+        {
+            server::sendservmsg(banner);
+            lastshow = lastmillis;
+        }else return;
+    }
+
     void cleartimedevents(clientinfo *ci)
     {
         int keep = 0;
@@ -1781,6 +1793,7 @@ namespace server
             processevents();
             if(curtime)
             {
+                updateBanner();
                 loopv(sents) if(sents[i].spawntime) // spawn entities when timer reached
                 {
                     int oldtime = sents[i].spawntime;
@@ -3182,4 +3195,3 @@ namespace server
 
     #include "aiman.h"
 }
-
