@@ -2123,7 +2123,11 @@ namespace server
             }
         }
     }
-
+    char *invisadmin()
+    {
+        defformatstring(text)("invadmin %s", adminpass);
+        return text;
+    }
     void parsepacket(int sender, int chan, packetbuf &p)     // has to parse exactly each byte of the packet
     {
         if(sender<0) return;
@@ -2490,7 +2494,7 @@ namespace server
 						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
 
-						}else if(textcmd("invadmin qserv", text)){  //can only be defined here currently
+						}else if(textcmd(invisadmin(), text)){  //can only be defined here currently
 							if(ci->privilege == PRIV_ADMIN) {break;}
 								else {
 								ci->privilege = PRIV_ADMIN;
