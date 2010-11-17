@@ -2659,7 +2659,7 @@ namespace server
 					       break;
 					       
                        }else if(textcmd("info", text)){
-						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Server running \f4QServ 1.5\f7 - \f1www.bit.ly/qserv");  
+						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Server running \f4QServ 2.5\f7 - \f1www.bit.ly/qserv");  
  						   break; 
 						   
 					   }else if(textcmd("pm", text)) {
