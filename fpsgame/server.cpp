@@ -518,7 +518,7 @@ namespace server
 	char *passwrd = adminpass;
 	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please name it in \"server-init.cfg\"\33[0m\n");}
 	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please change it in \"server-init.cfg\"\33[0m\n");}
-	printf("\33[34mServer with name \"%s\" and admin password \"%s\" started on port %i \n\33[31mCtrl-C to exit and stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
+	printf("\33[34mServer with name \"%s\" and admin password \"%s\" started on port %i \nCtrl-C to exit and stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
 	}
 
     void serverinit()
