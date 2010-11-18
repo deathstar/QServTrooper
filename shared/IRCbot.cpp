@@ -48,9 +48,9 @@ void ircBot::init()
     con = connect(sock, (struct sockaddr *)&sa, sizeof(sa));
     defformatstring(user)("USER %s 0 * :%s\r\n", ircbotname, ircbotname);
     send(sock, user, strlen(user), 0);
-    defformatstring(nick)("NICK %s\r\n\0", ircbotname);
+    defformatstring(nick)("NICK %s\r\n", ircbotname);
     send(sock, nick, strlen(nick), 0);
-    defformatstring(join)("JOIN %s\r\n\0", ircchan);
+    defformatstring(join)("JOIN %s\r\n", ircchan);
     send(sock, join, strlen(join), 0);
     int n;
     char mybuffer[1000];
@@ -65,12 +65,8 @@ void ircBot::init()
             snprintf(out,30,"PONG: %s",out);
             send(sock,out,strlen(out),0);
         }
-		if(sscanf(mybuffer,"#")==0)
-		{
         defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
         server::sendservmsg(toserver);
-		}
-
         memset(mybuffer,'\0',1000);
         memset(out,'\0',30);
     }
