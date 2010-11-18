@@ -36,9 +36,6 @@ enet/Makefile:
 	@echo "$(COMPILING)Configuring enet$(RESETC)"
 	@cd enet && ./configure
 
-$(eventdir)/.libs/libevent.a: $(eventdir)/Makefile
-	@echo "$(COMPILING)Building libevent$(RESETC)"
-	@cd $(eventdir) && $(MAKE) event-config.h libevent.la
 
 $(eventdir)/Makefile: $(eventdir)/configure
 	@echo "$(COMPILING)Configuring libevent$(RESETC)"
