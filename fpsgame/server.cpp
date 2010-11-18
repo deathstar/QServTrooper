@@ -2543,10 +2543,6 @@ namespace server
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, killall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
-						}else if(textcmd("fuck", text)){
-						//	echo(serv, "fuck");
-							break;
-
 						}else if(textcmd("clearb", text) && ci->privilege){
 					    	bannedips.shrink(0);
 							printf("\33[33mAll bans cleared\33[0m\n");
@@ -2735,12 +2731,11 @@ namespace server
 					 	}else if(textcmd("stopserver", text)){
 					       sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 					       break;
-
-                       }else if(textcmd("info", text)){
+					
+						}else if(textcmd("info", text)){
 						   char *s = qserv_info;
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
-						
- 						   break;
+						   break;
 
 					   }else if(textcmd("pm", text)) {
 						   if(text[3] == ' ') {
