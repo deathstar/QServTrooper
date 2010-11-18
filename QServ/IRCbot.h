@@ -32,4 +32,15 @@ class ircBot
 
 extern ircBot irc;
 
+enum
+{
+    ECHO_ALL = 0,
+    ECHO_IRC ,
+    ECHO_CONSOLE,
+    ECHO_SERV,
+    ECHO_MASTER,
+};
+
+extern void echo(int type, char *fmt, ...);
+
 #endif ///__IRCBOT_INCLUDED

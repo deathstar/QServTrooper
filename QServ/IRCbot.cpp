@@ -1,4 +1,4 @@
-#include "cube.h"
+#include "game.h"
 #include "IRCbot.h"
 #include <io.h>
 #include <iostream>
@@ -68,5 +68,49 @@ void ircBot::init()
 
         memset(mybuffer,'\0',1000);
         memset(out,'\0',30);
+    }
+}
+
+void echo(int type, int cn, const char *fmt, ...)
+{
+    char msg[1000];
+    va_list list;
+    va_start(list,fmt);
+    vsnprintf(msg,1000,fmt,list);
+    va_end(list);
+
+    switch(type)
+    {
+        case ECHO_ALL:
+        {
+            server::sendservmsg(msg);
+            irc.speak(msg);
+            puts(msg);
+            break;
+        }
+        case ECHO_IRC:
+        {
+            irc.speak(msg);
+            break;
+        }
+        case ECHO_CONSOLE:
+        {
+            puts(msg);
+            break;
+        }
+        case ECHO_SERV:
+        {
+            server::sendservmsg(msg);
+            break;
+        }
+        case ECHO_MASTER:
+        {
+            int ci = server::getmastercn();
+            if(ci >= 0)
+                sendf(ci, 1, "ris", N_SERVMSG, msg);
+            break;
+        }
+        default:
+            break;
     }
 }
