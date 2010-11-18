@@ -317,6 +317,7 @@ void disconnect_client(int n, int reason)
     defformatstring(s)("client \f2(%s) \f7disconnected because: \f3%s\n", clients[n]->hostname, disc_reasons[reason]);
 	server::sendservmsg(s);
 	printf("client (%s) disconnected because: %s\n", clients[n]->hostname, disc_reasons[reason]);
+	irc.speak("%s disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
 }
 
 void kicknonlocalclients(int reason)
@@ -616,7 +617,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     {
         laststatus = totalmillis;
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
-        serverhost->totalSentData = serverhost->totalReceivedData = 0;
+		serverhost->totalSentData = serverhost->totalReceivedData = 0;
     }
 
     ENetEvent event;
@@ -639,7 +640,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
                 char hn[1024];
 
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-
+				
 		        printf("incomming connection (%s)\n", c.hostname);
                 int reason = server::clientconnect(c.num, c.peer->address.host, c.hostname);
                 if(!reason) nonlocalclients++;

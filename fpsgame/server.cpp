@@ -390,7 +390,7 @@ namespace server
     bool reliablemessages = false;
     void clearbans()
     {
-        irc.speak("Cleared Bans.");
+        irc.speak("All bans cleared");
         bannedips.shrink(0);
     }
     struct demofile
@@ -407,6 +407,7 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 
+	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
@@ -1021,9 +1022,12 @@ namespace server
         mastermode = MM_OPEN;
         allowedips.shrink(0);
         string msg;
+		string msg_irc;
         if(val && authname) formatstring(msg)("%s claimed %s as '\fs\f5%s\fr'", colorname(ci), name, authname);
         else formatstring(msg)("\f0%s \f7%s \f1%s", colorname(ci), val ? "claimed" : "relinquished", name);
         sendservmsg(msg);
+		formatstring(msg_irc)("%s %s %s", colorname(ci), val ? "claimed" : "relinquished", name);
+		irc.speak(msg_irc);
         currentmaster = val ? ci->clientnum : -1;
         sendf(-1, 1, "ri4", N_CURRENTMASTER, currentmaster, currentmaster >= 0 ? ci->privilege : 0, mastermode);
         if(gamepaused)
@@ -1985,6 +1989,7 @@ namespace server
             ci->state.timeplayed += lastmillis - ci->state.lasttimeplayed;
 			defformatstring(s)(" %s", colorname(ci)); //ties in with disconnected client message
 			puts(s);
+			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
             savescore(ci);
             sendf(-1, 1, "ri2", N_CDIS, n);
             clients.removeobj(ci);
@@ -2245,7 +2250,7 @@ namespace server
                 }else
                 {
                     defformatstring(b)("\f0%s \f7is connected from \f2%s", colorname(ci), ip);
-                    irc.speak("%s is connected from %s", colorname(ci), ip);
+                    irc.speak("%s (%s) is connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
                 defformatstring(l)("Welcome to %s, \f0%s\f7! Enjoy your stay", servername, colorname(ci));
@@ -2515,9 +2520,11 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-                irc.speak("%s: %s", newstring(ci->name), newstring(text));
+
+				irc.speak("%s: %s", newstring(ci->name), newstring(text));
+
                 if(ci)
-                {
+                {	
                     if(text[0] == '#' || text[0] == '@') {
 						char *c = text;
 						while(*c && isspace(*c)) c++;
@@ -2540,9 +2547,16 @@ namespace server
 							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
 							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, killall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: call IRC operators");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, killall, callops, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
 							
+					 	}else if(textcmd("callops", text)){
+							defformatstring(s)("You have called operators %s, if they are available they will respond shortly", irc_operators);
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
+							irc.speak("Attention operators %s: %s needs assistance", irc_operators, colorname(ci));
+							break;
+
 						}else if(textcmd("clearb", text) && ci->privilege){
 					    	bannedips.shrink(0);
 							printf("\33[33mAll bans cleared\33[0m\n");
@@ -2558,6 +2572,7 @@ namespace server
 								else {
 								ci->privilege = PRIV_ADMIN;
 								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Your privilege has been raised to admin");
+								irc.speak("%s's privilege was rased to admin (invisible)", colorname(ci));
 								break;
 							    }
 						}else if(textcmd("invadmin", text)){
@@ -2587,6 +2602,7 @@ namespace server
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
 								if (cn->connected){
 									ban &b = bannedips.add();
+									irc.speak("%s banned %s (%s)", colorname(ci), colorname(cn), cn->ip);
 									b.time = gamemillis;
 									b.ip = getclientip(cn->clientnum);
 									allowedips.removeobj(b.ip);

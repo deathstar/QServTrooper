@@ -91,6 +91,7 @@ namespace game
  
 namespace server
 {
+	extern bool irc_status();
 	extern void startserv();
     extern void *newclientinfo();
     extern void deleteclientinfo(void *ci);

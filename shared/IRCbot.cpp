@@ -18,7 +18,7 @@ int ircBot::speak(const char *fmt, ...){
     va_list list;
     va_start(list,fmt);
     vsnprintf(k,1000,fmt,list);
-    snprintf(msg,1000,"PRIVMSG %s :%s\r\n\0",ircchan,k);
+    snprintf(msg,1000,"Private Message %s: %s\r\n\0",ircchan,k);
     va_end(list);
 
     return send(sock,msg,strlen(msg),0);
@@ -59,8 +59,8 @@ void ircBot::init()
 
         ParseMessage(mybuffer);
 		
-        if(sscanf(mybuffer,"PING :%s",mybuffer)==1){
-            snprintf(out,30,"PONG :%s",out);
+        if(sscanf(mybuffer,"PING: %s",mybuffer)==1){
+            snprintf(out,30,"PONG: %s",out);
             send(sock,out,strlen(out),0);
         }
 		if(sscanf(mybuffer,"#")==0)
