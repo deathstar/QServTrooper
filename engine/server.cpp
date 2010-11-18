@@ -4,6 +4,7 @@
 #include "engine.h"
 #include <pthread.h>
 #include "IRCbot.h"
+extern ircBot irc;
 
 #ifdef STANDALONE
 void fatal(const char *s, ...)

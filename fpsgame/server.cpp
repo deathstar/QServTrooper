@@ -1,6 +1,8 @@
 #include "game.h"
 #include <GeoIP.h>
 #include "IRCbot.h"
+extern ircBot irc;
+
 namespace game
 {
     void parseoptions(vector<const char *> &args)
@@ -405,6 +407,7 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 
+	SVAR(qserv_info, "");
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
     SVAR(adminpass, "");
@@ -429,6 +432,8 @@ namespace server
         n -= MAXCLIENTS;
         return bots.inrange(n) ? bots[n] : NULL;
     }
+
+
 
     vector<server_entity> sents;
     vector<savedscore> scores;
@@ -471,6 +476,17 @@ namespace server
     {
         sents.shrink(0);
         //cps.reset();
+    }
+
+    int getmastercn()
+    {
+        loopv(clients)
+        {
+            clientinfo *ci = clients[i];
+            if(ci->privilege == PRIV_MASTER)
+                return ci->clientnum;
+        }
+        return -1;
     }
 
     bool serveroption(const char *arg)
@@ -2526,6 +2542,10 @@ namespace server
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, killall, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
+							
+						}else if(textcmd("fuck", text)){
+						//	echo(serv, "fuck");
+							break;
 
 						}else if(textcmd("clearb", text) && ci->privilege){
 					    	bannedips.shrink(0);
@@ -2717,7 +2737,9 @@ namespace server
 					       break;
 
                        }else if(textcmd("info", text)){
-						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Server running \f4QServ 2.5\f7 - \f1www.bit.ly/qserv");
+						   char *s = qserv_info;
+						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
+						
  						   break;
 
 					   }else if(textcmd("pm", text)) {

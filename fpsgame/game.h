@@ -788,6 +788,7 @@ namespace server
     extern bool serveroption(const char *arg);
     extern bool delayspawn(int type);
     extern void kick_client(int cn);
+	extern int getmastercn();
 }
 
 #endif
