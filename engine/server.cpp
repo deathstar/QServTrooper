@@ -186,7 +186,6 @@ void cleanupserver()
 }
 
 void process(ENetPacket *packet, int sender, int chan);
-//void disconnect_client(int n, int reason);
 
 void *getclientinfo(int i) { return !clients.inrange(i) || clients[i]->type==ST_EMPTY ? NULL : clients[i]->info; }
 ENetPeer *getclientpeer(int i) { return clients.inrange(i) && clients[i]->type==ST_TCPIP ? clients[i]->peer : NULL; }
@@ -832,7 +831,10 @@ void *ServerInit(void *x)
 {
     initserver(true, true);
 }
-
+void *IRCInit(void *x)
+{
+    irc.init();
+}
 int main(int argc, char* argv[])
 {
     pthread_t server_thread, irc_thread;
@@ -840,7 +842,7 @@ int main(int argc, char* argv[])
     iserver = 1;
     iirc = 2;
 
-    void *ServerInit(void *), *IRCInit(void *);
+    void *ServerInit(void *);
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     atexit(enet_deinitialize);
     enet_time_set(0);
