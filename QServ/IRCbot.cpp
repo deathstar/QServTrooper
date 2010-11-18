@@ -9,18 +9,10 @@ SVAR(irchost, "78.40.125.4");
 VAR(ircport, 0, 6667, 65535);
 SVAR(ircchan, "#none");
 SVAR(ircbotname, "qserv");
-int sock;
 
-std::map<char *, IrcUser *> ircclients;
+ircBot irc;
 
-ICOMMAND(addlogin, "ss", (char *name, char *password),
-{
-    IrcUser *newuser;
-    newuser->password = password;
-    ircclients[name] = newuser;
-});
-
-int ircsay(const char *fmt, ...){
+int ircBot::speak(const char *fmt, ...){
     char msg[1000], k[1000];
     va_list list;
     va_start(list,fmt);
@@ -31,14 +23,14 @@ int ircsay(const char *fmt, ...){
     return send(sock,msg,strlen(msg),0);
 }
 
-void ParseMessage(char *buff, IrcMsg *msg){
-    if(sscanf(buff,":%[^!]!%[^@]@%[^ ] %*[^ ] %[^ :] :%[^\r\n]",msg->nick,msg->user,msg->host,msg->chan,msg->message) == 5){
-        msg->is_ready = 1;
-        if(msg->chan[0] != '#') strcpy(msg->chan,msg->nick);
-    } else msg->is_ready = 0;
+void ircBot::ParseMessage(char *buff){
+    if(sscanf(buff,":%[^!]!%[^@]@%[^ ] %*[^ ] %[^ :] :%[^\r\n]",msg.nick,msg.user,msg.host,msg.chan,msg.message) == 5){
+        msg.is_ready = 1;
+        if(msg.chan[0] != '#') strcpy(msg.chan,msg.nick);
+    } else msg.is_ready = 0;
 }
 
-void *IRCInit(void *x)
+void ircBot::init()
 {
     int con;
     struct sockaddr_in sa;
@@ -60,12 +52,11 @@ void *IRCInit(void *x)
     int n;
     char mybuffer[1000];
     char out[30];
-    IrcMsg msg;
     while(1){
         n = recv(sock, mybuffer, sizeof(mybuffer), 0);
         puts(mybuffer);
 
-        ParseMessage(mybuffer, &msg);
+        ParseMessage(mybuffer);
 
         if(sscanf(mybuffer,"PING :%s",mybuffer)==1){
             snprintf(out,30,"PONG :%s",out);

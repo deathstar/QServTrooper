@@ -17,13 +17,19 @@ struct IrcMsg
     int is_ready;
 };
 
-struct IrcUser
+class ircBot
 {
-    char *ircname, *password;
-    bool isLoggedIn;
-    IrcUser() : ircname(""), password(""), isLoggedIn(0) {}
+    public:
+        void init();
+        int getSock();
+        int speak(const char *fmt, ...);
+
+    private:
+        void ParseMessage(char *buff);
+        int sock;
+        IrcMsg msg;
 };
 
-int ircsay(const char *fmt, ...);
+extern ircBot irc;
 
 #endif ///__IRCBOT_INCLUDED
