@@ -146,7 +146,7 @@ struct databuf
 
     databuf() : buf(NULL), len(0), maxlen(0), flags(0) {}
 
-    template<class U> 
+    template<class U>
     databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {}
 
     const T &get()
@@ -226,7 +226,7 @@ struct packetbuf : ucharbuf
 
     void checkspace(int n)
     {
-        if(len + n > maxlen && packet && growth > 0) resize(max(len + n, maxlen + growth));    
+        if(len + n > maxlen && packet && growth > 0) resize(max(len + n, maxlen + growth));
     }
 
     ucharbuf subbuf(int sz)
@@ -246,7 +246,7 @@ struct packetbuf : ucharbuf
         checkspace(numvals);
         ucharbuf::put(vals, numvals);
     }
-    
+
     ENetPacket *finalize()
     {
         resize(len);
@@ -344,20 +344,20 @@ template <class T> struct vector
     int length() const { return ulen; }
     T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
     const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
-    
+
     void shrink(int i)         { ASSERT(i<=ulen); while(ulen>i) drop(); }
     void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
-    
+
     void deletecontents() { while(!empty()) delete   pop(); }
     void deletearrays() { while(!empty()) delete[] pop(); }
-    
+
     T *getbuf() { return buf; }
     const T *getbuf() const { return buf; }
     bool inbuf(const T *e) const { return e >= buf && e < &buf[ulen]; }
 
     template<class ST>
-    void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1) 
-    { 
+    void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1)
+    {
         quicksort(&buf[i], n < 0 ? ulen : n, cf);
     }
 
@@ -436,7 +436,7 @@ template <class T> struct vector
         loopi(ulen) if(buf[i]==o) return i;
         return -1;
     }
-    
+
     void removeobj(const T &o)
     {
         loopi(ulen) if(buf[i]==o) remove(i--);
@@ -541,7 +541,7 @@ static inline bool htcmp(const char *x, const char *y)
 }
 
 static inline uint hthash(int key)
-{   
+{
     return key;
 }
 
@@ -601,7 +601,7 @@ template<class T> struct hashset
         numelems++;
         return c;
     }
-     
+
     #define HTFIND(key, success, fail) \
         uint h = hthash(key)&(this->size-1); \
         for(chain *c = this->chains[h]; c; c = c->next) \
@@ -706,7 +706,7 @@ template<class K, class T> struct hashtable : hashset<hashtableentry<K, T> >
         c->elem.key = key;
         return c->elem;
     }
-    
+
     T *access(const K &key)
     {
         HTFIND(key, &c->elem.data, NULL);
@@ -739,7 +739,7 @@ struct unionfind
 
         ufval() : rank(0), next(-1) {}
     };
-    
+
     vector<ufval> ufvals;
 
     int find(int k)
@@ -748,13 +748,13 @@ struct unionfind
         while(ufvals[k].next>=0) k = ufvals[k].next;
         return k;
     }
-    
+
     int compressfind(int k)
     {
         if(ufvals[k].next<0) return k;
         return ufvals[k].next = compressfind(ufvals[k].next);
     }
-    
+
     void unite (int x, int y)
     {
         while(ufvals.length() <= max(x, y)) ufvals.add();
@@ -815,9 +815,9 @@ template <class T, int SIZE> struct queue
 {
     int head, tail, len;
     T data[SIZE];
-    
+
     queue() { clear(); }
-    
+
     void clear() { head = tail = len = 0; }
 
     int length() const { return len; }
@@ -830,7 +830,7 @@ template <class T, int SIZE> struct queue
     T &adding(int offset) { return data[tail+offset >= SIZE ? tail+offset - SIZE : tail+offset]; }
     T &add()
     {
-        ASSERT(len < SIZE);    
+        ASSERT(len < SIZE);
         T &t = data[tail];
         tail = (tail + 1)%SIZE;
         len++;
@@ -861,7 +861,7 @@ inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-
 inline void *__cdecl operator new(size_t n, const char *fn, int l) { return ::operator new(n, 1, fn, l); }
 inline void __cdecl operator delete(void *p, const char *fn, int l) { ::operator delete(p, 1, fn, l); }
 #define new new(__FILE__,__LINE__)
-#endif 
+#endif
 #endif
 
 const int islittleendian = 1;
@@ -963,10 +963,4 @@ extern bool base64_strcmp(const char *s, const char *s64); // compare a string w
 // Debug a function call (print it out and execute it)
 // #define DEBUGF(a) { printf("%s: %d: %s\n", __FILE__, __LINE__, #a); a; }
 #define DEBUGF(a) { a; }
-void bufferevent_print_error(short what, const char *fmt, ...);
-void evdns_print_error(int result, const char *fmt, ...);
-void bufferevent_write_printf(struct bufferevent *be, const char *fmt, ...);
-void bufferevent_write_vprintf(struct bufferevent *be, const char *fmt, va_list ap);
-char *evbuffer_readln_nul(struct evbuffer *buffer, size_t *n_read_out, enum evbuffer_eol_style eol_style);
-
 #endif

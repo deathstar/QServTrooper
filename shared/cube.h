@@ -29,11 +29,6 @@
 #endif
 #include <time.h>
 
-#include <sys/queue.h>
-#include <event.h>
-#include <evhttp.h>
-#include <evdns.h>
-
 #ifdef WIN32
   #define WIN32_LEAN_AND_MEAN
   #include "windows.h"

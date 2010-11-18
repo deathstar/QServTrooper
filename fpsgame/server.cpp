@@ -2241,7 +2241,7 @@ namespace server
 				//motd - Message of the Day
 				char *servername = serverdesc;
                 GeoIP * gi;
-                gi = GeoIP_new(GEOIP_STANDARD);
+                gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
                     defformatstring(b)("\f0%s \f7is connected from \f2Local Host", colorname(ci));
@@ -2521,10 +2521,8 @@ namespace server
                 getstring(text, p);
                 filtertext(text, text);
 
-				irc.speak("%s: %s", newstring(ci->name), newstring(text));
-
                 if(ci)
-                {	
+                {
                     if(text[0] == '#' || text[0] == '@') {
 						char *c = text;
 						while(*c && isspace(*c)) c++;
@@ -2550,7 +2548,7 @@ namespace server
 							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: call IRC operators");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Commands: \f7me, say, pm, help, info, uptime, frag, killall, callops, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb and stopserver\nType \f2#help (command) \f7for information on a command");
 							break;
-							
+
 					 	}else if(textcmd("callops", text)){
 							defformatstring(s)("You have called operators %s, if they are available they will respond shortly", irc_operators);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
@@ -2747,7 +2745,7 @@ namespace server
 					 	}else if(textcmd("stopserver", text)){
 					       sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 					       break;
-					
+
 						}else if(textcmd("info", text)){
 						   char *s = qserv_info;
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
@@ -2783,7 +2781,7 @@ namespace server
 						   break;
 						}
                     }
-
+                    irc.speak("%s: %s", newstring(ci->name), newstring(text));
 					for (int a=0; a<(strlen(*blkmsg)-1); a++) {
 					textblk(blkmsg[a], text, ci);
 					}

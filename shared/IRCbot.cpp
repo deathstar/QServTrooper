@@ -1,7 +1,9 @@
 #include "game.h"
 #include "IRCbot.h"
+#ifndef WIN32
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#endif
 #include <iostream>
 #include <string>
 #include <map>
@@ -58,7 +60,7 @@ void ircBot::init()
         puts(mybuffer);
 
         ParseMessage(mybuffer);
-		
+
         if(sscanf(mybuffer,"PING: %s",mybuffer)==1){
             snprintf(out,30,"PONG: %s",out);
             send(sock,out,strlen(out),0);

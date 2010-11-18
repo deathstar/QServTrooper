@@ -1,52 +1,26 @@
-DEBUG=true
+CC = g++
 
-#QSERV_VERSION=$(shell git log --abbrev-commit --pretty=format:%h -1)
+CFLAGS =-w -fomit-frame-pointer -fsigned-char -Ienet/include -DSTANDALONE -Ishared -Iengine -Ifpsgame
 
-programs=qserv
-eventdir=libevent2
-enetdir=enet
+COMPILE = $(CC) $(CFLAGS) -c
+LDFLAGS := -lGeoIP -lenet -lz
 
-qserv_SRCS=shared/crypto.cpp shared/stream.cpp shared/tools.cpp engine/command.cpp engine/server.cpp fpsgame/server.cpp shared/IRCbot.cpp
-qserv_EXTRA_DEPS=$(enetdir)/.libs/libenet.a $(eventdir)/.libs/libevent.a
-qserv_CXXFLAGS=-Wall -fomit-frame-pointer -fsigned-char -Ienet/include -I$(eventdir)/include -I$(eventdir) -DSTANDALONE -Ishared -Iengine -I./fpsgame
-qserv_LDFLAGS=$(enetdir)/.libs/libenet.a $(eventdir)/.libs/libevent.a
-qserv_LIBS=GeoIP z resolv
-extra=config.h config.mk
+SERVER := qserv
 
-ifeq ($(DEBUG),true)
-qserv_CXXFLAGS+=-g
-qserv_LDFLAGS+=-g
-else
-qserv_CXXFLAGS+=-O3
+ifeq (,$(findstring MINGW,$(PLATFORM)))
+LDFLAGS +=-lpthread -lenet -lz -lws2_32 -lwinmm
+SERVER = qserv.exe
 endif
 
--include config.mk
+OBJFILES := shared/crypto.o shared/stream.o shared/tools.o engine/command.o engine/server.o fpsgame/server.o shared/IRCbot.o
 
-include common.mk
+all: $(SERVER)
 
-config.h:
-config.mk:
-	@if ! ./config.sh; then exit 1; fi
+$(SERVER): $(OBJFILES)
+	$(CC) -o $(SERVER) $(OBJFILES) $(LDFLAGS)
 
-enet/.libs/libenet.a: enet/Makefile
-	@echo "$(COMPILING)Building enet$(RESETC)"
-	@cd enet && $(MAKE) libenet.la
+%.o: %.cpp
+	$(COMPILE) -o $@ $<
 
-enet/Makefile:
-	@echo "$(COMPILING)Configuring enet$(RESETC)"
-	@cd enet && ./configure
-
-
-$(eventdir)/Makefile: $(eventdir)/configure
-	@echo "$(COMPILING)Configuring libevent$(RESETC)"
-	@cd $(eventdir) && ./configure
-
-.PHONY: eclean
-eclean: clean
-	@if [ -f enet/Makefile ]; then cd enet && $(MAKE) distclean; fi
-	@if [ -f $(eventdir)/Makefile ]; then cd $(eventdir) && $(MAKE) distclean; fi
-
-.PHONY: distclean
-distclean: eclean
-	@rm -f config.mk config.h
-
+clean:
+	@rm -f $(OBJFILES) $(SERVER)

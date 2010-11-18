@@ -370,9 +370,6 @@ extern void sendserverinforeply(ucharbuf &p);
 extern bool requestmaster(const char *req);
 extern bool requestmasterf(const char *fmt, ...);
 
-extern event_base *evbase;
-extern evdns_base *dnsbase;
-
 // client
 extern void sendclientpacket(ENetPacket *packet, int chan);
 extern void flushclient();
