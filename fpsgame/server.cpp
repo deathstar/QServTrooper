@@ -1,6 +1,6 @@
 #include "game.h"
 #include <GeoIP.h>
-int ircsay(const char *fmt, ...);
+#include "IRCbot.h"
 namespace game
 {
     void parseoptions(vector<const char *> &args)
@@ -386,7 +386,11 @@ namespace server
     vector<clientinfo *> connects, clients, bots;
     vector<worldstate *> worldstates;
     bool reliablemessages = false;
-
+    void clearbans()
+    {
+        irc.speak("Cleared Bans.");
+        bannedips.shrink(0);
+    }
     struct demofile
     {
         string info;
@@ -2064,7 +2068,11 @@ namespace server
         ci->authreq = 0;
         setmaster(ci, true, "", ci->authname);
     }
-
+    char *getclientname(int i)
+    {
+        clientinfo *cn = (clientinfo *)getclientinfo(i);
+        return cn->name;
+    }
     void authchallenged(uint id, const char *val)
     {
         clientinfo *ci = findauth(id);
@@ -2149,6 +2157,18 @@ namespace server
         defformatstring(text)("invadmin %s", adminpass);
         return text;
     }
+    void bancn(int i)
+    {
+        clientinfo *cn = (clientinfo *)getclientinfo(i);
+        if (cn->connected)
+        {
+            ban &b = bannedips.add();
+            b.time = gamemillis;
+            b.ip = getclientip(cn->clientnum);
+            allowedips.removeobj(b.ip);
+            disconnect_client(cn->clientnum, DISC_BANNED);
+        }
+    }
     void parsepacket(int sender, int chan, packetbuf &p)     // has to parse exactly each byte of the packet
     {
         if(sender<0) return;
@@ -2204,12 +2224,12 @@ namespace server
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
                     defformatstring(b)("\f0%s \f7is connected from \f2Local Host", colorname(ci));
-                    ircsay("%s is connected from Local Host", colorname(ci));
+                    irc.speak("%s is connected from Local Host", colorname(ci));
                     server::sendservmsg(b);
                 }else
                 {
                     defformatstring(b)("\f0%s \f7is connected from \f2%s", colorname(ci), ip);
-                    ircsay("%s is connected from %s", colorname(ci), ip);
+                    irc.speak("%s is connected from %s", colorname(ci), ip);
                     server::sendservmsg(b);
                 }
                 defformatstring(l)("Welcome to %s, \f0%s\f7! Enjoy your stay", servername, colorname(ci));
@@ -2479,7 +2499,7 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-                ircsay("%s: %s", newstring(ci->name), newstring(text));
+                irc.speak("%s: %s", newstring(ci->name), newstring(text));
                 if(ci)
                 {
                     if(text[0] == '#' || text[0] == '@') {
