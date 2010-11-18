@@ -9,7 +9,7 @@
 SVAR(irchost, "78.40.125.4");
 VAR(ircport, 0, 6667, 65535);
 SVAR(ircchan, "#none");
-SVAR(ircbotname, "qserv");
+SVAR(ircbotname, "QServ");
 
 ircBot irc;
 
