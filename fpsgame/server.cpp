@@ -1,5 +1,6 @@
 #include "game.h"
 #include <GeoIP.h>
+int ircsay(const char *fmt, ...);
 namespace game
 {
     void parseoptions(vector<const char *> &args)
@@ -2203,10 +2204,12 @@ namespace server
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
                     defformatstring(b)("\f0%s \f7is connected from \f2Local Host", colorname(ci));
+                    ircsay("%s is connected from Local Host", colorname(ci));
                     server::sendservmsg(b);
                 }else
                 {
                     defformatstring(b)("\f0%s \f7is connected from \f2%s", colorname(ci), ip);
+                    ircsay("%s is connected from %s", colorname(ci), ip);
                     server::sendservmsg(b);
                 }
                 defformatstring(l)("Welcome to %s, \f0%s\f7! Enjoy your stay", servername, colorname(ci));
@@ -2476,7 +2479,7 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-
+                ircsay("%s: %s", newstring(ci->name), newstring(text));
                 if(ci)
                 {
                     if(text[0] == '#' || text[0] == '@') {
