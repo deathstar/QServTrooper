@@ -2,6 +2,7 @@
 // is largely backwards compatible with the quake console language.
 
 #include "engine.h"
+#include "IRCbot.h"
 
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 
@@ -593,7 +594,10 @@ char *executeret(const char *p)               // all evaluation happens here, re
             if(!id)
             {
                 if(!isinteger(c))
+                {
                     conoutf(CON_ERROR, "unknown command: %s", c);
+                    irc.speak("unknown command: %s", c);
+                }
                 setretval(newstring(c));
             }
             else switch(id->type)
@@ -1019,7 +1023,7 @@ int listincludes(const char *list, const char *needle, int needlelen)
     }
     return -1;
 }
-    
+
 char *listdel(const char *s, const char *del)
 {
     vector<char> p;

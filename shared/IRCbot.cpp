@@ -4,9 +4,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #endif
-#include <iostream>
-#include <string>
-#include <map>
 
 SVAR(irchost, "78.40.125.4");
 VAR(ircport, 0, 6667, 65535);
@@ -14,6 +11,26 @@ SVAR(ircchan, "#none");
 SVAR(ircbotname, "QServ");
 
 ircBot irc;
+
+ICOMMAND(clearbans, "", (), {
+        server::clearbans();
+});
+
+bool IsCommand(IrcMsg *msg)
+{
+    if(msg->message[0] == '#' || msg->message[0] == '@')
+    {
+        char *c = msg->message;
+        c++;
+        execute(c);
+        return true;
+    }return false;
+}
+
+int ircBot::getSock()
+{
+    return sock;
+}
 
 int ircBot::speak(const char *fmt, ...){
     char msg[1000], k[1000];
@@ -65,8 +82,10 @@ void ircBot::init()
             snprintf(out,30,"PONG: %s",out);
             send(sock,out,strlen(out),0);
         }
-        defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
-        server::sendservmsg(toserver);
+        if(!IsCommand(&msg)){
+            defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
+            server::sendservmsg(toserver);
+        }
         memset(mybuffer,'\0',1000);
         memset(out,'\0',30);
     }
