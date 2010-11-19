@@ -12,7 +12,7 @@ namespace game
             if(!game::clientoption(args[i]))
 #endif
             if(!server::serveroption(args[i]))
-                conoutf(CON_ERROR, "unknown command-line option: %s", args[i]);
+                conoutf(CON_ERROR, "unknown command: %s", args[i]);
     }
 }
 
@@ -1427,6 +1427,7 @@ namespace server
     int servuptime = 0;
     void changemap(const char *s, int mode)
     {
+		out(ECHO_ALL, "Map changed to: %s", s);
         stopdemo();
         pausegame(false);
         if(smode) smode->reset(false);
@@ -1434,7 +1435,7 @@ namespace server
 
         mapreload = false;
         gamemode = mode;
-	servuptime=(gamemillis/1000)+servuptime;
+	    servuptime=(gamemillis/1000)+servuptime;
         gamemillis = 0;
         gamelimit = (m_overtime ? 15 : 10)*60000;
         interm = 0;
@@ -1563,6 +1564,7 @@ namespace server
         {
             defformatstring(msg)("\f0%s \f7suggests %s \f7on map \f1%s \f7(use \f2/map %s \f7to vote)", colorname(ci), modename(reqmode), map, map);
             sendservmsg(msg);
+			out(ECHO_IRC, "%s suggests %s on map %s", colorname(ci), modename(reqmode), map);
             checkvotes();
         }
     }
@@ -2552,14 +2554,12 @@ namespace server
 					 	}else if(textcmd("callops", text)){
 							defformatstring(s)("You have called operators %s, if they are available they will respond shortly", irc_operators);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
-							irc.speak("Attention operators %s: %s needs assistance", irc_operators, colorname(ci));
+							out(ECHO_IRC, "Attention operators %s: %s needs assistance", irc_operators, colorname(ci));
 							break;
 
 						}else if(textcmd("clearb", text) && ci->privilege){
 					    	bannedips.shrink(0);
-							printf("\33[33mAll bans cleared\33[0m\n");
-							defformatstring(s)("\f0%s \f7cleared all bans", colorname(ci));
-							sendservmsg(s);
+							out(ECHO_ALL, "All bans cleared");
 							break;
 						}else if(textcmd("clearb", text)){
 						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
@@ -2570,7 +2570,8 @@ namespace server
 								else {
 								ci->privilege = PRIV_ADMIN;
 								sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Your privilege has been raised to admin");
-								irc.speak("%s's privilege was rased to admin (invisible)", colorname(ci));
+								out(ECHO_IRC, "%s claimed invisible admin", colorname(ci));
+								out(ECHO_CONSOLE, "%s claimed invisible admin", colorname(ci));
 								break;
 							    }
 						}else if(textcmd("invadmin", text)){
@@ -2600,7 +2601,6 @@ namespace server
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
 								if (cn->connected){
 									ban &b = bannedips.add();
-									irc.speak("%s banned %s (%s)", colorname(ci), colorname(cn), cn->ip);
 									b.time = gamemillis;
 									b.ip = getclientip(cn->clientnum);
 									allowedips.removeobj(b.ip);
@@ -2642,7 +2642,8 @@ namespace server
 									sendf(-1, 1, "ri4", N_CURRENTMASTER, currentmaster, currentmaster >= 0 ? cn->privilege : 0, mastermode);
 									defformatstring(b)("\f0%s \f7gave master to \f6%s", colorname(ci), colorname(cn));
 									sendservmsg(b);
-									printf("%s gave master to %s\n", colorname(ci), colorname(cn));
+									out(ECHO_IRC, "%s gave master to %s", colorname(ci), colorname(cn));
+									out(ECHO_CONSOLE, "%s gave master to %s", colorname(ci), colorname(cn));
 								break;
 								}
 						}else if(text[11] == '\0') {
@@ -2663,8 +2664,8 @@ namespace server
 
 					    }else if(textcmd("allowmaster", text) && ci->privilege == PRIV_ADMIN){
 							mastermask = MM_PRIVSERV;
-							defformatstring(s)("Master has been \f0enabled", colorname(ci));
-							sendservmsg(s);
+							out(ECHO_SERV, "master has been \f0enabled");
+							out(ECHO_IRC, "Master has been enabled");
 							break;
 
 						}else if(textcmd("allowmaster", text)){
@@ -2673,8 +2674,8 @@ namespace server
 
 						}else if(textcmd("disallowmaster", text) && ci->privilege == PRIV_ADMIN){
 							mastermask = !MM_AUTOAPPROVE;
-							defformatstring(s)("Master has been \f3disabled", colorname(ci));
-							sendservmsg(s);
+							out(ECHO_SERV, "master has been \f3disabled");
+							out(ECHO_IRC, "Master has been disabled");
 							break;
 
 						}else if(textcmd("disallowmaster", text)){
@@ -2721,6 +2722,7 @@ namespace server
 							if(text[3] == ' ') {
 								defformatstring(s)("\f0%s\f7%s", ci->name, text+3);
 								sendservmsg(s);
+								out(ECHO_IRC, "%s %s", ci->name, text+3);
 							break;
 
 						}else if(text[3] == '\0') {
@@ -2731,6 +2733,7 @@ namespace server
 							if(text[4] == ' ') {
 								defformatstring(d)("\f7%s", text+5);
 								sendservmsg(d);
+								out(ECHO_IRC, "%s: %s", colorname(ci), text+5);
 							break;
 
 						}else if(text[4] == '\0') {
@@ -2738,7 +2741,7 @@ namespace server
 							break;
 						}
                         }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
-                            printf("\33[31mServer stopped by: %s\33[0m\n", colorname(ci));
+							out(ECHO_ALL, "%s stopped the server", colorname(ci));
                             kicknonlocalclients();
                             exit(EXIT_FAILURE);
        						break;
@@ -2760,6 +2763,7 @@ namespace server
 						    	sendf(i, 1, "ris", N_SERVMSG, s);
 						    	defformatstring(d)("PM \f1\"%s\" \f7sent to \f0%s", text+6, colorname(clients[i]));
 						    	sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
+								out(ECHO_IRC, "%s -> %s | Private Message: %s", colorname(ci), colorname(clients[i]), text+6);
 								break;
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
@@ -2781,7 +2785,7 @@ namespace server
 						   break;
 						}
                     }
-                    irc.speak("%s: %s", newstring(ci->name), newstring(text));
+					out(ECHO_IRC, "%s: %s", newstring(ci->name), newstring(text));
 					for (int a=0; a<(strlen(*blkmsg)-1); a++) {
 					textblk(blkmsg[a], text, ci);
 					}
@@ -2938,8 +2942,9 @@ namespace server
                             loopv(clients) allowedips.add(getclientip(clients[i]->clientnum));
                         }
                         //sendf(-1, 1, "rii", N_MASTERMODE, mastermode);
-                        defformatstring(s)("\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);
-						sendservmsg(s);
+                        out(ECHO_SERV, "\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);
+						out(ECHO_IRC, "%s set mastermode to %s (%d)", colorname(ci), mastermodename(mastermode), mastermode);
+						out(ECHO_CONSOLE, "%s set mastermode to %s (%d)", colorname(ci), mastermodename(mastermode), mastermode);
                     }
                     else
                     {
@@ -2955,10 +2960,7 @@ namespace server
                 if(ci->privilege || ci->local)
                 {
                     bannedips.shrink(0);
-					defformatstring(s)("\f0%s \f7cleared all bans", colorname(ci));
-					sendservmsg(s);
-
-					printf("\33[33mAll bans cleared\33[0m\n");
+					out(ECHO_ALL, "%s cleared all bans", colorname(ci));
                 }
                 break;
             }
@@ -3041,6 +3043,7 @@ namespace server
                 demonextmatch = val!=0;
                 defformatstring(msg)("Demo recording has been %s for next match", demonextmatch ? "\f0enabled" : "\f3disabled");
                 sendservmsg(msg);
+				out(ECHO_IRC, "%s has %s demo recording for the next match", colorname(ci), demonextmatch ? "enabled" : "disabled");
                 break;
             }
 
