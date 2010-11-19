@@ -658,7 +658,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
             {
                 client *c = (client *)event.peer->data;
                 if(!c) break;
-                printf("client disconnected (%s)", c->hostname);
+                printf("client disconnected (%s)\n", c->hostname);
                 server::clientdisconnect(c->num);
                 nonlocalclients--;
                 c->type = ST_EMPTY;

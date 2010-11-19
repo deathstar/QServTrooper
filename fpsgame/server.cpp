@@ -1989,7 +1989,7 @@ namespace server
             if(ci->privilege) setmaster(ci, false);
             if(smode) smode->leavegame(ci, true);
             ci->state.timeplayed += lastmillis - ci->state.lasttimeplayed;
-			defformatstring(s)(" %s", colorname(ci)); //ties in with disconnected client message
+			defformatstring(s)("Disconnected: %s", colorname(ci)); //ties in with disconnected client message
 			puts(s);
 			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
             savescore(ci);
@@ -2257,7 +2257,7 @@ namespace server
                 }
                 defformatstring(l)("Welcome to %s, \f0%s\f7! Enjoy your stay", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
-				defformatstring(d)(" %s", colorname(ci)); //this will tie in with incomming connection on the same line
+				defformatstring(d)("Connected: %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
             }
         }
