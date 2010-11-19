@@ -41,6 +41,6 @@ enum
     ECHO_MASTER,
 };
 
-extern void echo(int type, char *fmt, ...);
+extern void out(int type, char *fmt, ...);
 
 #endif ///__IRCBOT_INCLUDED

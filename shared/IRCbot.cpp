@@ -16,6 +16,19 @@ ICOMMAND(clearbans, "", (), {
         server::clearbans();
 });
 
+ICOMMAND(echoall, "s", (char *s), {
+        out(ECHO_ALL,s);
+});
+ICOMMAND(echoirc, "s", (char *s), {
+        out(ECHO_IRC,s);
+});
+ICOMMAND(echocon, "s", (char *s), {
+        out(ECHO_CONSOLE,s);
+});
+ICOMMAND(echoserv, "s", (char *s), {
+        out(ECHO_SERV,s);
+});
+
 bool IsCommand(IrcMsg *msg)
 {
     if(msg->message[0] == '#' || msg->message[0] == '@')
@@ -71,7 +84,7 @@ void ircBot::init()
     send(sock, join, strlen(join), 0);
     int n;
     char mybuffer[1000];
-    char out[30];
+    char Pout[30];
     while(1){
         n = recv(sock, mybuffer, sizeof(mybuffer), 0);
         puts(mybuffer);
@@ -79,19 +92,19 @@ void ircBot::init()
         ParseMessage(mybuffer);
 
         if(sscanf(mybuffer,"PING: %s",mybuffer)==1){
-            snprintf(out,30,"PONG: %s",out);
-            send(sock,out,strlen(out),0);
+            snprintf(Pout,30,"PONG: %s",Pout);
+            send(sock,Pout,strlen(Pout),0);
         }
         if(!IsCommand(&msg)){
             defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
             server::sendservmsg(toserver);
         }
         memset(mybuffer,'\0',1000);
-        memset(out,'\0',30);
+        memset(Pout,'\0',30);
     }
 }
 
-void echo(int type, const char *fmt, ...)
+void out(int type, char *fmt, ...)
 {
     char msg[1000];
     va_list list;
