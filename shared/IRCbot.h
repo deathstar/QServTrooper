@@ -23,11 +23,13 @@ class ircBot
         void init();
         int getSock();
         int speak(const char *fmt, ...);
+        void checkping(char *buff);
 
     private:
         void ParseMessage(char *buff);
         int sock;
         IrcMsg msg;
+        bool connected;
 };
 
 extern ircBot irc;

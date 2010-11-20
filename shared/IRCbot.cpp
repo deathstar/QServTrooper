@@ -7,9 +7,9 @@
 #include <netinet/in.h>
 #endif
 
-SVAR(irchost, "irc.freenode.net");
+SVAR(irchost, "irc.gamesurge.net");
 VAR(ircport, 0, 6667, 65535);
-SVAR(ircchan, "#c2-server");
+SVAR(ircchan, "#c2");
 SVAR(ircbotname, "QServ");
 
 ircBot irc;
@@ -65,47 +65,58 @@ void ircBot::ParseMessage(char *buff){
     } else msg.is_ready = 0;
 }
 
+void ircBot::checkping(char *buff)
+{
+    printf("%s\n", buff);
+    char Pingout[30];
+    memset(Pingout,'\0',30);
+    if(sscanf(buff,"PING :%s",buff)==1)
+    {
+        snprintf(Pingout,30,"PONG :%s\r\n",buff);
+        send(sock,Pingout,strlen(Pingout),0);
+        printf("SENT: %s\n", Pingout);
+
+    }
+    memset(Pingout,'\0',30);
+}
+
 void ircBot::init()
 {
     int con;
     struct sockaddr_in sa;
     struct hostent *he;
-
+    char mybuffer[1000];
     sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
     memset(&sa, 0, sizeof sa);
     memset(&he, 0, sizeof he);
     sa.sin_family = AF_INET;
     he = gethostbyname(irchost);
     bcopy(*he->h_addr_list, (char *)&sa.sin_addr.s_addr, sizeof(sa.sin_addr.s_addr));
     sa.sin_port = htons(ircport);
-
+    connected = false;
     con = connect(sock, (struct sockaddr *)&sa, sizeof(sa));
-    defformatstring(user)("USER %s 0 * %s\r\n", ircbotname, ircbotname);
+
+    defformatstring(user)("USER %s 0 * :%s\r\n", ircbotname, ircbotname);
     send(sock, user, strlen(user), 0);
     defformatstring(nick)("NICK %s\r\n", ircbotname);
     send(sock, nick, strlen(nick), 0);
     defformatstring(join)("JOIN %s\r\n", ircchan);
-    send(sock, join, strlen(join), 0);
+
     int n;
-    char mybuffer[1000];
-    char Pout[30];
     while(1){
         n = recv(sock, mybuffer, sizeof(mybuffer), 0);
-        puts(mybuffer);
-
-        ParseMessage(mybuffer);
-
-        if(sscanf(mybuffer,"PING: %s",mybuffer)==1){
-            snprintf(Pout,30,"PONG: %s",Pout);
-            send(sock,Pout,strlen(Pout),0);
+        checkping(mybuffer);
+        if(!connected)
+        {
+            send(sock, join, strlen(join), 0);
+            connected = true;
         }
+        ParseMessage(mybuffer);
         if(!IsCommand(&msg)){
             defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
             server::sendservmsg(toserver);
         }
         memset(mybuffer,'\0',1000);
-        memset(Pout,'\0',30);
     }
 }
 
