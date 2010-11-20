@@ -6,7 +6,8 @@
 
 #ifndef __IRCBOT_INCLUDED
 #define __IRCBOT_INCLUDED
-
+#include <vector>
+#include <algorithm>
 struct IrcMsg
 {
     char nick[32];
@@ -26,7 +27,9 @@ class ircBot
         void checkping(char *buff);
         void join(char *channel);
         void part(char *channel);
-
+        void notice(char *user, char *message);
+        IrcMsg lastmsg();
+        hashtable<char *, int> IRCusers;
     private:
         void ParseMessage(char *buff);
         int sock;

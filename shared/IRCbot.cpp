@@ -1,21 +1,46 @@
 #include "game.h"
-#include "IRCbot.h"
 #ifndef WIN32
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #endif
+#include <iostream>
+#include "IRCbot.h"
 
 SVAR(irchost, "irc.gamesurge.net");
 VAR(ircport, 0, 6667, 65535);
 SVAR(ircchan, "#c2");
 SVAR(ircbotname, "QServ");
 
+SVAR(ircloginpass, "changeme");
+
 ircBot irc;
 
+bool isloggedin()
+{
+    IrcMsg *msg = &irc.lastmsg();
+
+    if(!irc.IRCusers.access(msg->host))
+        return false;
+    return true;
+}
+
+ICOMMAND(login, "s", (char *s), {
+        IrcMsg *msg = &irc.lastmsg();
+        if(!strcmp(s, ircloginpass)){
+            irc.IRCusers[msg->host] = 1;
+            irc.speak("%s has logged in", msg->nick);
+        }
+        else irc.notice(msg->nick, "Invalid Password");
+});
+
 ICOMMAND(clearbans, "", (), {
+    IrcMsg *msg = &irc.lastmsg();
+    if(isloggedin())
         server::clearbans();
+    else
+    irc.notice(msg->nick, "Insufficient Priveleges");
 });
 
 ICOMMAND(join, "s", (char *s), {
@@ -43,25 +68,34 @@ int ircBot::getSock()
 }
 
 int ircBot::speak(const char *fmt, ...){
-    char msg[1000], k[1000];
+    char Amsg[1000], k[1000];
     va_list list;
     va_start(list,fmt);
     vsnprintf(k,1000,fmt,list);
-    snprintf(msg,1000,"PRIVMSG %s :%s\r\n\0",ircchan,k);
+    snprintf(Amsg,1000,"PRIVMSG %s :%s\r\n\0",ircchan,k);
     va_end(list);
 
-    return send(sock,msg,strlen(msg),0);
+    return send(sock,Amsg,strlen(Amsg),0);
 }
 
+IrcMsg ircBot::lastmsg(){
+    return msg;
+}
 void ircBot::join(char *channel){
     defformatstring(joinchan)("JOIN %s\r\n", channel);
     send(sock,joinchan,strlen(joinchan),0);
 }
 
 void ircBot::part(char *channel){
-    defformatstring(joinchan)("PART %s\r\n", channel);
-    send(sock,joinchan,strlen(joinchan),0);
+    defformatstring(partchan)("PART %s\r\n", channel);
+    send(sock,partchan,strlen(partchan),0);
 }
+
+void ircBot::notice(char *user, char *message){
+    defformatstring(noticeuser)("NOTICE %s :%s\r\n", user, message);
+    send(sock,noticeuser,strlen(noticeuser),0);
+}
+
 
 void ircBot::ParseMessage(char *buff){
     if(sscanf(buff,":%[^!]!%[^@]@%[^ ] %*[^ ] %[^ :] :%[^\r\n]",msg.nick,msg.user,msg.host,msg.chan,msg.message) == 5){
@@ -73,15 +107,15 @@ void ircBot::ParseMessage(char *buff){
 void ircBot::checkping(char *buff)
 {
     printf("%s\n", buff);
-    char Pingout[30];
-    memset(Pingout,'\0',30);
+    char Pingout[60];
+    memset(Pingout,'\0',60);
     if(sscanf(buff,"PING :%s",buff)==1)
     {
-        snprintf(Pingout,30,"PONG :%s\r\n",buff);
+        snprintf(Pingout,60,"PONG :%s\r\n",buff);
         send(sock,Pingout,strlen(Pingout),0);
         printf("SENT: %s\n", Pingout);
     }
-    memset(Pingout,'\0',30);
+    memset(Pingout,'\0',60);
 }
 
 void ircBot::init()
@@ -113,7 +147,6 @@ void ircBot::init()
         if(!connected)
         {
             send(sock, join, strlen(join), 0);
-            //join(ircchan);
             connected = true;
         }
         ParseMessage(mybuffer);
@@ -123,6 +156,8 @@ void ircBot::init()
             server::sendservmsg(toserver);
         }
         memset(mybuffer,'\0',1000);
+        memset(mybuffer,0,sizeof(IrcMsg));
+        //msg = NULL;
     }
 }
 
