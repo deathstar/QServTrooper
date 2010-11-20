@@ -6,8 +6,7 @@
 
 #ifndef __IRCBOT_INCLUDED
 #define __IRCBOT_INCLUDED
-#include <vector>
-#include <algorithm>
+
 struct IrcMsg
 {
     char nick[32];

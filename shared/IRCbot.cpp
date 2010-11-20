@@ -5,7 +5,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #endif
-#include <iostream>
 #include "IRCbot.h"
 
 SVAR(irchost, "irc.gamesurge.net");
@@ -21,8 +20,10 @@ bool isloggedin()
 {
     IrcMsg *msg = &irc.lastmsg();
 
-    if(!irc.IRCusers.access(msg->host))
+    if(!irc.IRCusers.access(msg->host)){
+        irc.notice(msg->nick, "Insufficient Priveleges");
         return false;
+    }
     return true;
 }
 
@@ -36,18 +37,17 @@ ICOMMAND(login, "s", (char *s), {
 });
 
 ICOMMAND(clearbans, "", (), {
-    IrcMsg *msg = &irc.lastmsg();
     if(isloggedin())
         server::clearbans();
-    else
-    irc.notice(msg->nick, "Insufficient Priveleges");
 });
 
 ICOMMAND(join, "s", (char *s), {
+    if(isloggedin())
         irc.join(s);
 });
 
 ICOMMAND(part, "s", (char *s), {
+    if(isloggedin())
         irc.part(s);
 });
 
@@ -156,8 +156,6 @@ void ircBot::init()
             server::sendservmsg(toserver);
         }
         memset(mybuffer,'\0',1000);
-        memset(mybuffer,0,sizeof(IrcMsg));
-        //msg = NULL;
     }
 }
 
