@@ -3,9 +3,11 @@
 #ifndef WIN32
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #endif
 
-SVAR(irchost, "78.40.125.4");
+SVAR(irchost, "irc.freenode.net");
 VAR(ircport, 0, 6667, 65535);
 SVAR(ircchan, "#none");
 SVAR(ircbotname, "QServ");
@@ -67,12 +69,15 @@ void ircBot::init()
 {
     int con;
     struct sockaddr_in sa;
+    struct hostent *he;
 
     sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     memset(&sa, 0, sizeof sa);
+    memset(&he, 0, sizeof he);
     sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = inet_addr(irchost);
+    he = gethostbyname(irchost);
+    bcopy(*he->h_addr_list, (char *)&sa.sin_addr.s_addr, sizeof(sa.sin_addr.s_addr));
     sa.sin_port = htons(ircport);
 
     con = connect(sock, (struct sockaddr *)&sa, sizeof(sa));
