@@ -24,6 +24,8 @@ class ircBot
         int getSock();
         int speak(const char *fmt, ...);
         void checkping(char *buff);
+        void join(char *channel);
+        void part(char *channel);
 
     private:
         void ParseMessage(char *buff);

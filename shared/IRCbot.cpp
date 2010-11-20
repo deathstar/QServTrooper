@@ -18,17 +18,12 @@ ICOMMAND(clearbans, "", (), {
         server::clearbans();
 });
 
-ICOMMAND(echoall, "s", (char *s), {
-        out(ECHO_ALL,s);
+ICOMMAND(join, "s", (char *s), {
+        irc.join(s);
 });
-ICOMMAND(echoirc, "s", (char *s), {
-        out(ECHO_IRC,s);
-});
-ICOMMAND(echocon, "s", (char *s), {
-        out(ECHO_CONSOLE,s);
-});
-ICOMMAND(echoserv, "s", (char *s), {
-        out(ECHO_SERV,s);
+
+ICOMMAND(part, "s", (char *s), {
+        irc.part(s);
 });
 
 bool IsCommand(IrcMsg *msg)
@@ -58,6 +53,16 @@ int ircBot::speak(const char *fmt, ...){
     return send(sock,msg,strlen(msg),0);
 }
 
+void ircBot::join(char *channel){
+    defformatstring(joinchan)("JOIN %s\r\n", channel);
+    send(sock,joinchan,strlen(joinchan),0);
+}
+
+void ircBot::part(char *channel){
+    defformatstring(joinchan)("PART %s\r\n", channel);
+    send(sock,joinchan,strlen(joinchan),0);
+}
+
 void ircBot::ParseMessage(char *buff){
     if(sscanf(buff,":%[^!]!%[^@]@%[^ ] %*[^ ] %[^ :] :%[^\r\n]",msg.nick,msg.user,msg.host,msg.chan,msg.message) == 5){
         msg.is_ready = 1;
@@ -75,7 +80,6 @@ void ircBot::checkping(char *buff)
         snprintf(Pingout,30,"PONG :%s\r\n",buff);
         send(sock,Pingout,strlen(Pingout),0);
         printf("SENT: %s\n", Pingout);
-
     }
     memset(Pingout,'\0',30);
 }
@@ -109,9 +113,11 @@ void ircBot::init()
         if(!connected)
         {
             send(sock, join, strlen(join), 0);
+            //join(ircchan);
             connected = true;
         }
         ParseMessage(mybuffer);
+
         if(!IsCommand(&msg)){
             defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
             server::sendservmsg(toserver);
