@@ -9,7 +9,7 @@
 
 SVAR(irchost, "irc.freenode.net");
 VAR(ircport, 0, 6667, 65535);
-SVAR(ircchan, "#none");
+SVAR(ircchan, "#c2-server");
 SVAR(ircbotname, "QServ");
 
 ircBot irc;
