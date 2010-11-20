@@ -50,14 +50,14 @@ int ircBot::speak(const char *fmt, ...){
     va_list list;
     va_start(list,fmt);
     vsnprintf(k,1000,fmt,list);
-    snprintf(msg,1000,"PRIVMSG %s %s\r\n\0",ircchan,k);
+    snprintf(msg,1000,"PRIVMSG %s :%s\r\n\0",ircchan,k);
     va_end(list);
 
     return send(sock,msg,strlen(msg),0);
 }
 
 void ircBot::ParseMessage(char *buff){
-    if(sscanf(buff,":%[^!]!%[^@]@%[^ ] %*[^ ] %[^] %[^\r\n]",msg.nick,msg.user,msg.host,msg.chan,msg.message) == 5){
+    if(sscanf(buff,":%[^!]!%[^@]@%[^ ] %*[^ ] %[^ :] :%[^\r\n]",msg.nick,msg.user,msg.host,msg.chan,msg.message) == 5){
         msg.is_ready = 1;
         if(msg.chan[0] != '#') strcpy(msg.chan,msg.nick);
     } else msg.is_ready = 0;
