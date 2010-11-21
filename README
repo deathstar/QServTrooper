@@ -4,17 +4,14 @@ QServ 2.5 - a elegant simple mod for Cube 2: Sauerbraten
 Refer to the QServ Wiki at: http://github.com/deathstar/QServ/wiki
 If you have any problems email me: x90265@gmail.com
 
+Cube 2: Sauerbraten Code License
+=================================
+
 Sauerbraten source code license, usage, and documentation.
 
 You may use the Sauerbraten source code if you abide by the ZLIB license
 http://www.opensource.org/licenses/zlib-license.php
 (very similar to the BSD license):
-
-
-LICENSE
-=======
-
-Sauerbraten game engine source code, any release.
 
 Copyright (C) 2001-2010 Wouter van Oortmerssen, Lee Salzman, Mike Dysart, Robert Pointon, and Quinton Reeves
 
