@@ -47,6 +47,6 @@ enum
     ECHO_MASTER,
 };
 
-extern void out(int type, char *fmt, ...);
-
+extern void out(int type, const char *fmt, ...);
+extern bool isloggedin();
 #endif ///__IRCBOT_INCLUDED

@@ -790,6 +790,7 @@ namespace server
     extern void kick_client(int cn);
 	extern int getmastercn();
 	extern void clearbans();
+	extern void banPlayer(int i);
 }
 
 #endif

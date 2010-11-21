@@ -13,8 +13,6 @@ VAR(ircignore, 0, 0, 1);
 SVAR(ircchan, "#c2");
 SVAR(ircbotname, "QServ");
 
-SVAR(ircloginpass, "changeme");
-
 ircBot irc;
 
 bool isloggedin()
@@ -27,30 +25,6 @@ bool isloggedin()
     }
     return true;
 }
-
-ICOMMAND(login, "s", (char *s), {
-        IrcMsg *msg = &irc.lastmsg();
-        if(!strcmp(s, ircloginpass)){
-            irc.IRCusers[msg->host] = 1;
-            irc.speak("%s has logged in", msg->nick);
-        }
-        else irc.notice(msg->nick, "Invalid Password");
-});
-
-ICOMMAND(clearbans, "", (), {
-    if(isloggedin())
-        server::clearbans();
-});
-
-ICOMMAND(join, "s", (char *s), {
-    if(isloggedin())
-        irc.join(s);
-});
-
-ICOMMAND(part, "s", (char *s), {
-    if(isloggedin())
-        irc.part(s);
-});
 
 bool IsCommand(IrcMsg *msg)
 {
@@ -160,7 +134,7 @@ void ircBot::init()
     }
 }
 
-void out(int type, char *fmt, ...)
+void out(int type, const char *fmt, ...)
 {
     char msg[1000];
     va_list list;

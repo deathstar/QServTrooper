@@ -393,6 +393,14 @@ namespace server
         irc.speak("All bans cleared");
         bannedips.shrink(0);
     }
+    void banPlayer(int i)
+    {
+        ban &b = bannedips.add();
+        b.time = totalmillis;
+        b.ip = getclientip(i);
+        allowedips.removeobj(b.ip);
+        disconnect_client(i, DISC_BANNED);
+    }
     struct demofile
     {
         string info;
