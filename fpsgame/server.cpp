@@ -415,6 +415,7 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 
+	VAR(shotguninsta, 0, 0, 1);
 	VAR(msg_to_console, 0, 0, 1);
 	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");

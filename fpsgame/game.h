@@ -124,6 +124,7 @@ static struct gamemodeinfo
     { "efficiency hold", M_NOITEMS | M_EFFICIENCY | M_CTF | M_HOLD | M_TEAM, "Efficiency Hold The Flag: Hold \fs\f7the flag\fr for 20 seconds to score points for \fs\f1your team\fr. You spawn with all weapons and armour. There are no items." }
 };
 
+VAR(shotguninsta, 0, 0, 1);
 #define STARTGAMEMODE (-3)
 #define NUMGAMEMODES ((int)(sizeof(gamemodes)/sizeof(gamemodes[0])))
 
@@ -441,8 +442,14 @@ struct fpsstate
         {
             armour = 0;
             health = 1;
-            gunselect = GUN_RIFLE;
-            ammo[GUN_RIFLE] = 100;
+            if(getvar("shotguninsta")) {
+				gunselect = GUN_SG;
+				ammo[GUN_SG] = 100;
+			}
+			else {
+				gunselect = GUN_RIFLE;
+				ammo[GUN_RIFLE] = 100;
+			}
         }
         else if(m_regencapture)
         {
