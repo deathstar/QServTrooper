@@ -12,11 +12,13 @@ set(qserv_srcs
 	shared/tools.cpp
 	shared/stream.cpp
 	shared/crypto.cpp
-	shared/IRCbot.cpp)
+	shared/IRCbot.cpp
+	shared/IRCcommands.cpp)
 
 set(qserv_LIBS
 	enet
 	GeoIP
+	g
 	${ZLIB_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT})
 
