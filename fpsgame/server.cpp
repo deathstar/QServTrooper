@@ -415,6 +415,7 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 
+	VAR(msg_to_console, 0, 0, 1);
 	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");
     SVAR(serverdesc, "");
@@ -2533,6 +2534,7 @@ namespace server
 
                 if(ci)
                 {
+					if(getvar("msg_to_console")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}
                     if(text[0] == '#' || text[0] == '@') {
 						char *c = text;
 						while(*c && isspace(*c)) c++;
