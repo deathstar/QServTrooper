@@ -9,6 +9,7 @@
 
 SVAR(irchost, "irc.gamesurge.net");
 VAR(ircport, 0, 6667, 65535);
+VAR(ircignore, 0, 0, 1);
 SVAR(ircchan, "#c2");
 SVAR(ircbotname, "QServ");
 
@@ -151,7 +152,7 @@ void ircBot::init()
         }
         ParseMessage(mybuffer);
 
-        if(!IsCommand(&msg)){
+        if(!IsCommand(&msg) && !ircignore){
             defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
             server::sendservmsg(toserver);
         }
