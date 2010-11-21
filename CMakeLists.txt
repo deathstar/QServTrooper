@@ -18,7 +18,6 @@ set(qserv_srcs
 set(qserv_LIBS
 	enet
 	GeoIP
-	g
 	${ZLIB_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT})
 
