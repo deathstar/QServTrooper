@@ -2256,9 +2256,7 @@ namespace server
                 gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
-                    defformatstring(b)("\f0%s \f7is connected from \f2Local Host", colorname(ci));
-                    irc.speak("%s is connected from Local Host", colorname(ci));
-                    server::sendservmsg(b);
+                    irc.speak("%s connected", colorname(ci));
                 }else
                 {
                     defformatstring(b)("\f0%s \f7is connected from \f2%s", colorname(ci), ip);
