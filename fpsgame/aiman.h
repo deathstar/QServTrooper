@@ -120,7 +120,7 @@ namespace aiman
         ci->state.skill = skill <= 0 ? rnd(50) + 51 : clamp(skill, 1, 101);
 	    clients.add(ci);
 		ci->state.lasttimeplayed = lastmillis;
-		copystring(ci->name, "Bot", MAXNAMELEN+1);
+		copystring(ci->name, botname, MAXNAMELEN+1);
 		ci->state.state = CS_DEAD;
         copystring(ci->team, team, MAXTEAMLEN+1);
         ci->playermodel = rnd(128);

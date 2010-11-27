@@ -417,6 +417,7 @@ namespace server
 
 	VAR(shotguninsta, 0, 0, 1);
 	VAR(msg_to_console, 0, 0, 1);
+	SVAR(botname, "");
 	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");
     SVAR(serverdesc, "");
