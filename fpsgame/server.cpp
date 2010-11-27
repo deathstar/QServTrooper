@@ -2256,7 +2256,7 @@ namespace server
                 gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
-                    irc.speak("%s connected", colorname(ci));
+                    irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else
                 {
                     defformatstring(b)("\f0%s \f7is connected from \f2%s", colorname(ci), ip);
