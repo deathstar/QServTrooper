@@ -23,7 +23,7 @@ ICOMMAND(login, "s", (char *s), {
         irc.notice(irc.lastmsg()->nick, "You are already logged in!");
         return;
     }if(!strcmp(s, ircloginpass)){
-        irc.IRCusers.push_back(irc.lastmsg()->host);
+        irc.IRCusers[irc.lastmsg()->host] = 1;
         irc.speak("%s has logged in", irc.lastmsg()->nick);
     }
     else irc.notice(irc.lastmsg()->nick, "Invalid Password");
@@ -66,11 +66,13 @@ ircBot irc;
 
 bool isloggedin(bool echo)
 {
-    for(int i = 0; i < irc.IRCusers.size(); i++)
+    /*for(int i = 0; i < irc.IRCusers.size(); i++)
     {
             if(!strcmp(irc.IRCusers[i], irc.lastmsg()->host))
                 return true;
-    }
+    }*/
+    if(irc.IRCusers.access(irc.lastmsg()->host))
+        return true;
     if(echo)
         irc.notice(irc.lastmsg()->nick, "Insufficient Priveleges");
     return false;

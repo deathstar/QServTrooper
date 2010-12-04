@@ -29,7 +29,7 @@ class ircBot
         void part(char *channel);
         void notice(char *user, const char *message);
         IrcMsg *lastmsg();
-        std::vector<char *> IRCusers;
+        hashtable<char *, int> IRCusers;
     private:
         void ParseMessage(char *buff);
         int sock;

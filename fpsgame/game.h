@@ -797,7 +797,10 @@ namespace server
 	extern int getmastercn();
 	extern void clearbans();
 	extern void banPlayer(int i);
+	extern char *getclientname(int i);
 }
+
+extern int getnumclients();
 
 #endif
 

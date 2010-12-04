@@ -25,6 +25,15 @@ class luaVM
         lua_State *L;
 };
 
+static struct luaEvent
+{
+    const char *name;
+    int eventnum;
+} luaEvents[] =
+{
+    {"servermsg", N_TEXT}
+};
+
 extern luaVM luavm;
 
 #endif ///__LUA_INCLUDED

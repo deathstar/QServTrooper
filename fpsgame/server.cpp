@@ -1,6 +1,7 @@
 #include "game.h"
 #include <GeoIP.h>
 #include "IRCbot.h"
+#include "sauerLua.h"
 extern ircBot irc;
 
 namespace game
@@ -2186,11 +2187,14 @@ namespace server
             }
         }
     }
+
     char *invisadmin()
     {
         defformatstring(text)("invadmin %s", adminpass);
-        return text;
+        char *outtext = text;
+        return outtext;
     }
+
     void bancn(int i)
     {
         clientinfo *cn = (clientinfo *)getclientinfo(i);
@@ -2203,6 +2207,7 @@ namespace server
             disconnect_client(cn->clientnum, DISC_BANNED);
         }
     }
+
     void parsepacket(int sender, int chan, packetbuf &p)     // has to parse exactly each byte of the packet
     {
         if(sender<0) return;
