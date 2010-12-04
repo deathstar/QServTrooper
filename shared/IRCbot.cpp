@@ -26,15 +26,19 @@ bool isloggedin()
     return true;
 }
 
-bool IsCommand(IrcMsg *msg)
+bool ircBot::IsCommand(char *buff)
 {
-    if(msg->message[0] == '#' || msg->message[0] == '@')
+    if(!checkping(buff))
     {
-        char *c = msg->message;
-        c++;
-        execute(c);
-        return true;
-    }return false;
+        ParseMessage(buff);
+        if(msg.message[0] == '#' || msg.message[0] == '@')
+        {
+            char *c = msg.message;
+            c++;
+            execute(c);
+            return true;
+        }return false;
+    }return true;
 }
 
 int ircBot::getSock()
@@ -79,7 +83,7 @@ void ircBot::ParseMessage(char *buff){
     } else msg.is_ready = 0;
 }
 
-void ircBot::checkping(char *buff)
+bool ircBot::checkping(char *buff)
 {
     printf("%s\n", buff);
     char Pingout[60];
@@ -89,8 +93,9 @@ void ircBot::checkping(char *buff)
         snprintf(Pingout,60,"PONG :%s\r\n",buff);
         send(sock,Pingout,strlen(Pingout),0);
         printf("SENT: %s\n", Pingout);
+        return 1;
     }
-    memset(Pingout,'\0',60);
+    return 0;
 }
 
 void ircBot::init()
@@ -118,15 +123,13 @@ void ircBot::init()
     int n;
     while(1){
         n = recv(sock, mybuffer, sizeof(mybuffer), 0);
-        checkping(mybuffer);
         if(!connected)
         {
             send(sock, join, strlen(join), 0);
             connected = true;
         }
-        ParseMessage(mybuffer);
 
-        if(!IsCommand(&msg) && !ircignore){
+        if(!IsCommand(mybuffer)){
             defformatstring(toserver)("\f4%s \f3%s \f7- \f0%s\f7: %s", newstring(irchost), newstring(ircchan), msg.nick, msg.message);
             server::sendservmsg(toserver);
         }
