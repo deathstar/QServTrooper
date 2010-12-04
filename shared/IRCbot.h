@@ -6,7 +6,7 @@
 
 #ifndef __IRCBOT_INCLUDED
 #define __IRCBOT_INCLUDED
-
+#include <vector>
 struct IrcMsg
 {
     char nick[32];
@@ -28,8 +28,8 @@ class ircBot
         void join(char *channel);
         void part(char *channel);
         void notice(char *user, char *message);
-        IrcMsg lastmsg();
-        hashtable<char *, int> IRCusers;
+        IrcMsg *lastmsg();
+        std::vector<char *> IRCusers;
     private:
         void ParseMessage(char *buff);
         int sock;
@@ -49,5 +49,5 @@ enum
 };
 
 extern void out(int type, const char *fmt, ...);
-extern bool isloggedin();
+extern bool isloggedin(bool echo = 1);
 #endif ///__IRCBOT_INCLUDED

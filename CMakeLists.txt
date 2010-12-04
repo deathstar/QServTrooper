@@ -12,8 +12,7 @@ set(qserv_srcs
 	shared/tools.cpp
 	shared/stream.cpp
 	shared/crypto.cpp
-	shared/IRCbot.cpp
-	shared/IRCcommands.cpp)
+	shared/IRCbot.cpp)
 
 set(qserv_LIBS
 	enet

@@ -12,18 +12,59 @@ VAR(ircport, 0, 6667, 65535);
 VAR(ircignore, 0, 0, 1);
 SVAR(ircchan, "#c2");
 SVAR(ircbotname, "QServ");
+#include "game.h"
+#include "IRCbot.h"
+
+SVAR(ircloginpass, "changeme");
+
+ICOMMAND(login, "s", (char *s), {
+    if(isloggedin(0)){
+        irc.notice(irc.lastmsg()->nick, "You are already logged in!");
+        return;
+    }if(!strcmp(s, newstring(ircloginpass))){
+        irc.IRCusers.push_back(irc.lastmsg()->host);
+        irc.speak("%s has logged in", irc.lastmsg()->nick);
+    }
+    else irc.notice(irc.lastmsg()->nick, "Invalid Password");
+});
+
+ICOMMAND(clearbans, "", (), {
+    if(isloggedin())
+        server::clearbans();
+});
+
+ICOMMAND(join, "s", (char *s), {
+    if(isloggedin())
+        irc.join(s);
+});
+
+ICOMMAND(part, "s", (char *s), {
+    if(isloggedin())
+        irc.part(s);
+});
+
+ICOMMAND(kick, "i", (int *i), {
+    if(isloggedin())
+        disconnect_client(*i, DISC_KICK);
+});
+
+ICOMMAND(kick, "i", (int *i), {
+    if(isloggedin())
+        server::banPlayer(*i);
+});
 
 ircBot irc;
 
-bool isloggedin()
+bool isloggedin(bool echo)
 {
-    IrcMsg *msg = &irc.lastmsg();
-
-    if(!irc.IRCusers.access(msg->host)){
-        irc.notice(msg->nick, "Insufficient Priveleges");
-        return false;
+    for(int i = 0; i < irc.IRCusers.size(); i++)
+    {
+            if(!strcmp(irc.IRCusers[i], irc.lastmsg()->host))
+                return true;
     }
-    return true;
+    if(echo)
+        irc.notice(irc.lastmsg()->nick, "Insufficient Priveleges");
+    return false;
 }
 
 bool ircBot::IsCommand(char *buff)
@@ -35,6 +76,7 @@ bool ircBot::IsCommand(char *buff)
         {
             char *c = msg.message;
             c++;
+            conoutf(c);
             execute(c);
             return true;
         }return false;
@@ -57,8 +99,8 @@ int ircBot::speak(const char *fmt, ...){
     return send(sock,Amsg,strlen(Amsg),0);
 }
 
-IrcMsg ircBot::lastmsg(){
-    return msg;
+IrcMsg *ircBot::lastmsg(){
+    return &msg;
 }
 void ircBot::join(char *channel){
     defformatstring(joinchan)("JOIN %s\r\n", channel);
@@ -119,10 +161,11 @@ void ircBot::init()
     defformatstring(nick)("NICK %s\r\n", ircbotname);
     send(sock, nick, strlen(nick), 0);
     defformatstring(join)("JOIN %s\r\n", ircchan);
+    send(sock, join, strlen(join), 0);
 
     int n;
-    while(1){
-        n = recv(sock, mybuffer, sizeof(mybuffer), 0);
+   while(1){
+       recv(sock, mybuffer, sizeof(mybuffer), 0);
         if(!connected)
         {
             send(sock, join, strlen(join), 0);
