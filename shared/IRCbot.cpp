@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #endif
 #include "IRCbot.h"
+#include "sauerLua.h"
 
 SVAR(irchost, "irc.gamesurge.net");
 VAR(ircport, 0, 6667, 65535);
@@ -21,7 +22,7 @@ ICOMMAND(login, "s", (char *s), {
     if(isloggedin(0)){
         irc.notice(irc.lastmsg()->nick, "You are already logged in!");
         return;
-    }if(!strcmp(s, newstring(ircloginpass))){
+    }if(!strcmp(s, ircloginpass)){
         irc.IRCusers.push_back(irc.lastmsg()->host);
         irc.speak("%s has logged in", irc.lastmsg()->nick);
     }
@@ -31,6 +32,14 @@ ICOMMAND(login, "s", (char *s), {
 ICOMMAND(clearbans, "", (), {
     if(isloggedin())
         server::clearbans();
+});
+
+ICOMMAND(doscript, "s", (char *s), {
+    if(isloggedin()){
+        if(fileexists(s, "r"))
+            luaL_dofile(luavm.getState(), s);
+        else irc.notice(irc.lastmsg()->nick, "Invalid Script Name");
+    }
 });
 
 ICOMMAND(join, "s", (char *s), {
@@ -112,7 +121,7 @@ void ircBot::part(char *channel){
     send(sock,partchan,strlen(partchan),0);
 }
 
-void ircBot::notice(char *user, char *message){
+void ircBot::notice(char *user, const char *message){
     defformatstring(noticeuser)("NOTICE %s :%s\r\n", user, message);
     send(sock,noticeuser,strlen(noticeuser),0);
 }

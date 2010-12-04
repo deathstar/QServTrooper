@@ -27,7 +27,7 @@ class ircBot
         bool IsCommand(char *buff);
         void join(char *channel);
         void part(char *channel);
-        void notice(char *user, char *message);
+        void notice(char *user, const char *message);
         IrcMsg *lastmsg();
         std::vector<char *> IRCusers;
     private:

@@ -4,11 +4,12 @@
 #include "engine.h"
 #include <pthread.h>
 #include "IRCbot.h"
+#include "sauerLua.h"
 extern ircBot irc;
-
+luaVM luavm;
 #ifdef STANDALONE
 void fatal(const char *s, ...)
-{ //
+{
     void cleanupserver();
     cleanupserver();
     defvformatstring(msg,s,s);
@@ -640,7 +641,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
                 char hn[1024];
 
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-				
+
 		        printf("incomming connection (%s)\n", c.hostname);
                 int reason = server::clientconnect(c.num, c.peer->address.host, c.hostname);
                 if(!reason) nonlocalclients++;
@@ -839,6 +840,7 @@ void *IRCInit(void *x)
 }
 int main(int argc, char* argv[])
 {
+    luavm.qservLuaInit();
     pthread_t server_thread, irc_thread;
     int iserver,iirc;
     iserver = 1;
