@@ -1,5 +1,5 @@
 project(qserv)
-subdirs(enet GeoIP)
+subdirs(enet GeoIP liblua)
 
 find_package(ZLIB REQUIRED)
 find_package(Threads REQUIRED)
@@ -17,6 +17,7 @@ set(qserv_srcs
 set(qserv_LIBS
 	enet
 	GeoIP
+	lua
 	${ZLIB_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT})
 
@@ -47,6 +48,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/engine
 	${CMAKE_SOURCE_DIR}/tools
 	${CMAKE_SOURCE_DIR}/QServ
 	${CMAKE_SOURCE_DIR}/enet/include
+	${CMAKE_SOURCE_DIR}/liblua
 	${ZLIB_INCLUDE_PATH})
 
 add_executable(qserv
