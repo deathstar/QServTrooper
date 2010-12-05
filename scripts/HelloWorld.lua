@@ -1,11 +1,6 @@
-colors = { "Green","Blue","Yellow","Red","Grey","Purple","Orange","White" }
-
-function helloworld(numcol)
-	for i = 0,numcol,1 do
-		qserv.toserver("\f" .. i .. "Hello World! in " .. colors[i+1] .. "(" .. i .. ")")
-	end
-	msg = qserv.getclientname(0)
-	qserv.toserver("\f3Client 0's name is " .. msg)
+function helloworld(ci, text)
+	client = clientinfo(ci)
+	qserv.toserver("\f3" .. client:name() .. " said " .. text)
 end
 
-helloworld(7)
+qserv.AddCallback(qserv.N_TEXT, "helloworld")

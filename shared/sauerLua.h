@@ -15,25 +15,19 @@ extern "C"
 }
 
 #include "game.h"
-
+#include "tools.h"
 class luaVM
 {
     public:
         void qservLuaInit();
         lua_State *getState();
+        hashtable<int, vector<char *> > eventFunc;
     private:
         lua_State *L;
 };
 
-static struct luaEvent
-{
-    const char *name;
-    int eventnum;
-} luaEvents[] =
-{
-    {"servermsg", N_TEXT}
-};
-
+extern int initClientLib(lua_State *L);
+extern void luaCallback(int event, int sender, char *text = "");
 extern luaVM luavm;
 
 #endif ///__LUA_INCLUDED

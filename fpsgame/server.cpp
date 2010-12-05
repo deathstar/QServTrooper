@@ -2536,7 +2536,7 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-
+                luaCallback(N_TEXT, ci->clientnum, text);
                 if(ci)
                 {
 					if(getvar("msg_to_console")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}
@@ -3273,4 +3273,61 @@ namespace server
     }
 
     #include "aiman.h"
+}
+
+#include "lunar.h"
+
+#define ciNullCheck(what) \
+    if(!ci) \
+        return 0; \
+    what; \
+    return 1;
+
+class clientinfo
+{
+public:
+    static const char *className;
+    static Lunar<clientinfo>::RegType methods[];
+
+    clientinfo(lua_State *L)      { ci = server::getinfo(luaL_checknumber(L, 1)); }
+
+    int name(lua_State *L){ciNullCheck(lua_pushstring(L, ci->name));}
+    int team(lua_State *L){ciNullCheck(lua_pushstring(L, ci->team));}
+    int ip(lua_State *L){ciNullCheck(lua_pushstring(L, ci->ip));}
+    int num(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->clientnum));}
+    int ping(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->ping));}
+
+    int frags(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.frags));}
+    int flags(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.flags));}
+    int deaths(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.deaths));}
+    int teamkills(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.teamkills));}
+    int shotdamage(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.shotdamage));}
+    int damage(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.damage));}
+
+    ~clientinfo() { printf("deleted (%p)\n", this); }
+  private:
+    server::clientinfo *ci;
+};
+
+const char *clientinfo::className = "clientinfo";
+
+Lunar<clientinfo>::RegType clientinfo::methods[] = {
+  LUNAR_DECLARE_METHOD(clientinfo, name),
+  LUNAR_DECLARE_METHOD(clientinfo, team),
+  LUNAR_DECLARE_METHOD(clientinfo, ip),
+  LUNAR_DECLARE_METHOD(clientinfo, num),
+  LUNAR_DECLARE_METHOD(clientinfo, ping),
+  LUNAR_DECLARE_METHOD(clientinfo, frags),
+  LUNAR_DECLARE_METHOD(clientinfo, flags),
+  LUNAR_DECLARE_METHOD(clientinfo, deaths),
+  LUNAR_DECLARE_METHOD(clientinfo, teamkills),
+  LUNAR_DECLARE_METHOD(clientinfo, shotdamage),
+  LUNAR_DECLARE_METHOD(clientinfo, damage),
+  {0,0}
+};
+
+int initClientLib(lua_State *L)
+{
+    Lunar<clientinfo>::Register(L);
+    return 1;
 }
