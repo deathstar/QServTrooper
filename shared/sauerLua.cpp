@@ -71,9 +71,35 @@ void luaVM::qservLuaInit()
     luaL_openlibs(L);
     luaL_register(L, "qserv", qservlib);
     initClientLib(L);
-    lua_pushnumber(L, N_TEXT);
-    lua_setfield(L, -2, "N_TEXT");
+
+    lua_pushnumber(L, LUAEVENT_TEXT);
+    lua_setfield(L, -2, "LUAEVENT_TEXT");
+    lua_pushnumber(L, LUAEVENT_CONNECTED);
+    lua_setfield(L, -2, "LUAEVENT_CONNECTED");
+    lua_pushnumber(L, LUAEVENT_INTERMISSION);
+    lua_setfield(L, -2, "LUAEVENT_INTERMISSION");
+    lua_pushnumber(L, LUAEVENT_SUICIDE);
+    lua_setfield(L, -2, "LUAEVENT_SUICIDE");
+    lua_pushnumber(L, LUAEVENT_SHOOT);
+    lua_setfield(L, -2, "LUAEVENT_SHOOT");
+    lua_pushnumber(L, LUAEVENT_SAYTEAM);
+    lua_setfield(L, -2, "LUAEVENT_SAYTEAM");
+    lua_pushnumber(L, LUAEVENT_MAPCHANGE);
+    lua_setfield(L, -2, "LUAEVENT_MAPCHANGE");
+    lua_pushnumber(L, LUAEVENT_GETMAP);
+    lua_setfield(L, -2, "LUAEVENT_GETMAP");
+    lua_pushnumber(L, LUAEVENT_KICK);
+    lua_setfield(L, -2, "LUAEVENT_KICK");
+    lua_pushnumber(L, LUAEVENT_NEWMAP);
+    lua_setfield(L, -2, "LUAEVENT_NEWMAP");
+    lua_pushnumber(L, LUAEVENT_ADDBOT);
+    lua_setfield(L, -2, "LUAEVENT_ADDBOT");
+    lua_pushnumber(L, LUAEVENT_DELBOT);
+    lua_setfield(L, -2, "LUAEVENT_DELBOT");
+    lua_pushnumber(L, LUAEVENT_PAUSEGAME);
+    lua_setfield(L, -2, "LUAEVENT_PAUSEGAME");
+
+    luaL_dofile(L, "scripts/luaInit.lua");
+
     printf("\33[33mLua Successfully initialized\33[0m\n");
 }
-
-

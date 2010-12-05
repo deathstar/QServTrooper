@@ -29,7 +29,8 @@ set(lua_srcs
 	ltablib.c
 	lstrlib.c
 	loadlib.c
-	linit.c)
+	linit.c
+	libhttpd.c)
 
 
 add_definitions(-DHAS_SOCKLEN_T)

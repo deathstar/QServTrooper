@@ -26,6 +26,23 @@ class luaVM
         lua_State *L;
 };
 
+enum
+{
+    LUAEVENT_TEXT = 0,
+    LUAEVENT_CONNECTED,
+    LUAEVENT_INTERMISSION,
+    LUAEVENT_SUICIDE,
+    LUAEVENT_SHOOT,
+    LUAEVENT_SAYTEAM,
+    LUAEVENT_MAPCHANGE,
+    LUAEVENT_KICK,
+    LUAEVENT_GETMAP,
+    LUAEVENT_NEWMAP,
+    LUAEVENT_ADDBOT,
+    LUAEVENT_DELBOT,
+    LUAEVENT_PAUSEGAME
+};
+
 extern int initClientLib(lua_State *L);
 extern void luaCallback(int event, int sender, char *text = "");
 extern luaVM luavm;

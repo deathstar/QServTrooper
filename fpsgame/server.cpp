@@ -2273,6 +2273,7 @@ namespace server
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)("Connected: %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
+				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
             }
         }
         else if(chan==2)
@@ -2468,6 +2469,7 @@ namespace server
             case N_SUICIDE:
             {
                 if(cq) cq->addevent(new suicideevent);
+                luaCallback(LUAEVENT_SUICIDE, ci->clientnum);
                 break;
             }
 
@@ -2536,7 +2538,7 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-                luaCallback(N_TEXT, ci->clientnum, text);
+                luaCallback(LUAEVENT_TEXT, ci->clientnum, text);
                 if(ci)
                 {
 					if(getvar("msg_to_console")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}
@@ -3303,6 +3305,7 @@ public:
     int teamkills(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.teamkills));}
     int shotdamage(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.shotdamage));}
     int damage(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->state.damage));}
+    int privilege(lua_State *L){ciNullCheck(lua_pushnumber(L, ci->privilege));}
 
     ~clientinfo() { printf("deleted (%p)\n", this); }
   private:
@@ -3323,6 +3326,7 @@ Lunar<clientinfo>::RegType clientinfo::methods[] = {
   LUNAR_DECLARE_METHOD(clientinfo, teamkills),
   LUNAR_DECLARE_METHOD(clientinfo, shotdamage),
   LUNAR_DECLARE_METHOD(clientinfo, damage),
+  LUNAR_DECLARE_METHOD(clientinfo, privilege),
   {0,0}
 };
 
