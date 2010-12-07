@@ -30,7 +30,7 @@ static int lua_getclientname(lua_State *Lua)
     return 1;
 }
 
-void luaCallback(int event, int sender, char *text)
+/*void luaCallback(int event, int sender, char *text)
 {
     loopv(luavm.eventFunc[event])
     {
@@ -44,6 +44,42 @@ void luaCallback(int event, int sender, char *text)
         lua_pushstring(luavm.getState(), text);
         lua_pcall(luavm.getState(), 2, 0, 0);
     }
+}*/
+
+void luaCallback(int event, int cn, int numargs, const char *format, ...)
+{
+    vector<int> nums;
+    vector<const char *> strings;
+
+    va_list args;
+    va_start(args, format);
+    while(*format) switch(*format++)
+    {
+        case 'i':
+        {
+            int n = isdigit(*format) ? *format++-'0' : 1;
+            loopi(n) nums.add(va_arg(args, int));
+            break;
+        }
+        case 's':
+           strings.add(va_arg(args, const char *));
+            break;
+    }
+    va_end(args);
+
+    loopv(luavm.eventFunc[event])
+    {
+        lua_getglobal(luavm.getState(), luavm.eventFunc[event][i]);
+        if(!lua_isfunction(luavm.getState(),-1))
+        {
+            lua_pop(luavm.getState(),1);
+            return;
+        }
+        lua_pushnumber(luavm.getState(), cn);
+        loopv(strings) lua_pushstring(luavm.getState(), strings[i]);
+        loopv(nums) lua_pushnumber(luavm.getState(), nums[i]);
+        lua_pcall(luavm.getState(), numargs+1, 0, 0);
+    }
 }
 
 static int lua_addcallback(lua_State *Lua)
@@ -56,7 +92,8 @@ static int lua_addcallback(lua_State *Lua)
 }
 
 
-static const luaL_Reg qservlib[] = {
+static const luaL_Reg qservlib[] =
+{
     {"toserver", lua_toserver},
     {"clientcount", lua_getnumclients},
     {"getclientname", lua_getclientname},

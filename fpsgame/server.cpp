@@ -2538,7 +2538,7 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-                luaCallback(LUAEVENT_TEXT, ci->clientnum, text);
+                luaCallback(LUAEVENT_TEXT, ci->clientnum, 1, "s", text);
                 if(ci)
                 {
 					if(getvar("msg_to_console")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}

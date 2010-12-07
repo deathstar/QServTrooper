@@ -154,12 +154,13 @@ bool ircBot::checkping(char *buff)
 void ircBot::init()
 {
     int con;
+    char mybuffer[1000];
+
     struct sockaddr_in sa;
     struct hostent *he;
-    char mybuffer[1000];
+
     sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    memset(&sa, 0, sizeof sa);
-    memset(&he, 0, sizeof he);
+
     sa.sin_family = AF_INET;
     he = gethostbyname(irchost);
     bcopy(*he->h_addr_list, (char *)&sa.sin_addr.s_addr, sizeof(sa.sin_addr.s_addr));

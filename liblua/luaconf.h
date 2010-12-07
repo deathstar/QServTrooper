@@ -641,6 +641,7 @@ union luai_Cast { double l_d; long l_l; };
 ** insecure) or if you want the original tmpnam anyway.  By default, Lua
 ** uses tmpnam except when POSIX is available, where it uses mkstemp.
 */
+#define LUA_USE_MKSTEMP
 #if defined(loslib_c) || defined(luaall_c)
 
 #if defined(LUA_USE_MKSTEMP)

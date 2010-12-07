@@ -44,7 +44,7 @@ enum
 };
 
 extern int initClientLib(lua_State *L);
-extern void luaCallback(int event, int sender, char *text = "");
+extern void luaCallback(int event, int cn, int numargs = 0, const char *format = "", ...);
 extern luaVM luavm;
 
 #endif ///__LUA_INCLUDED
