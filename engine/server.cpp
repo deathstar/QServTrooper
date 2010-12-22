@@ -836,7 +836,7 @@ void *ServerInit(void *x)
 }
 void *IRCInit(void *x)
 {
-    irc.init();
+    //irc.init();
 }
 int main(int argc, char* argv[])
 {
