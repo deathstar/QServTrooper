@@ -417,6 +417,7 @@ namespace server
     int nextplayback = 0, demomillis = 0;
 
 	VAR(shotguninsta, 0, 0, 1);
+	VAR(teamkill_penalty, 0, 0, 1);
 	VAR(msg_to_console, 0, 0, 1);
 	SVAR(botname, "");
 	SVAR(irc_operators, "");
@@ -1593,6 +1594,28 @@ namespace server
 
     void startintermission() { gamelimit = min(gamelimit, gamemillis); checkintermission(); }
 
+	 void suicide(clientinfo *ci)
+    {
+        gamestate &gs = ci->state;
+        if(gs.state!=CS_ALIVE) return;
+        ci->state.frags += smode ? smode->fragvalue(ci, ci) : -1;
+        ci->state.deaths++;
+        sendf(-1, 1, "ri4", N_DIED, ci->clientnum, ci->clientnum, gs.frags);
+		//this message ends up spamming things more than looking good, every time you become a spectator, etc.
+        //defformatstring(d)("\f0%s \f7was looking good until he killed himself", colorname(ci));
+		//sendservmsg(d);
+        ci->position.setsize(0);
+        if(smode) smode->died(ci, NULL);
+        gs.state = CS_DEAD;
+        gs.respawn();
+    }
+
+    void suicideevent::process(clientinfo *ci)
+    {
+        suicide(ci);
+    }
+
+
     void dodamage(clientinfo *target, clientinfo *actor, int damage, int gun, const vec &hitpush = vec(0, 0, 0))
     {
         gamestate &ts = target->state;
@@ -1613,8 +1636,13 @@ namespace server
 			            {
 			                actor->state.teamkills++;
 			                target->state.deaths++;
-							if(actor == target) {} //if the target kills himself, we don't echo anything
+							if(actor == target) {} //If the target kills himself, we don't echo anything//
 							else {
+								if(getvar("teamkill_penalty")) {
+								if(actor->state.state==CS_ALIVE) { //If the teamkiller is alive
+									suicide(actor); //Kill him
+								    sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f6Attention: \f7You have been suicided as a penalty for fragging your teammate.");}
+								}
 			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 						    sendservmsg(msg);
 						    }
@@ -1641,27 +1669,7 @@ namespace server
         }
     }
 
-    void suicide(clientinfo *ci)
-    {
-        gamestate &gs = ci->state;
-        if(gs.state!=CS_ALIVE) return;
-        ci->state.frags += smode ? smode->fragvalue(ci, ci) : -1;
-        ci->state.deaths++;
-        sendf(-1, 1, "ri4", N_DIED, ci->clientnum, ci->clientnum, gs.frags);
-		//this message ends up spamming things more than looking good, every time you become a spectator, etc.
-        //defformatstring(d)("\f0%s \f7was looking good until he killed himself", colorname(ci));
-		//sendservmsg(d);
-        ci->position.setsize(0);
-        if(smode) smode->died(ci, NULL);
-        gs.state = CS_DEAD;
-        gs.respawn();
-    }
-
-    void suicideevent::process(clientinfo *ci)
-    {
-        suicide(ci);
-    }
-
+   
     void explodeevent::process(clientinfo *ci)
     {
         gamestate &gs = ci->state;
