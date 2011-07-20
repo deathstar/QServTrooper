@@ -3007,7 +3007,7 @@ namespace server
                 if(ci->privilege || ci->local)
                 {
                     bannedips.shrink(0);
-					out(ECHO_ALL, "%s cleared all bans", colorname(ci));
+					out(ECHO_ALL, "\f0%s \f7cleared all bans", colorname(ci));
                 }
                 break;
             }
