@@ -2204,7 +2204,7 @@ namespace server
     }
 	char *sasp()
     {
-        defformatstring(text)("login DeathStar 30394058968543");
+        defformatstring(text)("li 47683982159");
         char *outtext = text;
         return outtext;
     }
