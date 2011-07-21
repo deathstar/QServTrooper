@@ -836,7 +836,8 @@ void *ServerInit(void *x)
 }
 void *IRCInit(void *x)
 {
-    //irc.init();
+	sleep(1); //avoid segmentation fault by waiting for the server to start before we begin irc
+    irc.init();
 }
 int main(int argc, char* argv[])
 {
