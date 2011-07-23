@@ -228,7 +228,7 @@ namespace server
         int ping, aireinit;
         string clientmap;
         int mapcrc;
-        bool warned, gameclip;
+        bool warned, gameclip, pingwarned;
         ENetPacket *clipboard;
         int lastclipboard, needclipboard;
 
@@ -2989,6 +2989,7 @@ namespace server
 
             case N_CLIENTPING:
             {
+				if((ci->ping > 300) &&  !ci->pingwarned) {defformatstring(s)("\f6Attention: \f0%s\f7, please lower your ping; it is higher than this servers maximum ping limit (300)", colorname(ci)); sendservmsg(s); ci->pingwarned = true;}
                 int ping = getint(p);
                 if(ci)
                 {
