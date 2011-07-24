@@ -2651,7 +2651,8 @@ namespace server
 							if(text[3] == ' ') {
 								int v = text[4] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
-								if (cn->connected){
+								if(isalpha(text[4])) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7You have entered a letter \n\f2Usage: \f7#ip (cn)"); break;}
+								else if (cn->connected){
 									defformatstring(s)("\f0%s's \f7IP: \f2%s", colorname(cn), cn->ip);
 									sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
 								break;
