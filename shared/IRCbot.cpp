@@ -25,6 +25,7 @@ ICOMMAND(login, "s", (char *s), {
     }if(!strcmp(s, ircloginpass)){
         irc.IRCusers[irc.lastmsg()->host] = 1;
         irc.speak("%s has logged in", irc.lastmsg()->nick);
+		out(ECHO_SERV, "\f0%s \f7has logged in thru IRC (\f4%s \f3%s\f7)", irc.lastmsg()->nick, irchost, ircchan);
     }
     else irc.notice(irc.lastmsg()->nick, "Invalid Password");
 });
