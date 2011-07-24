@@ -2606,17 +2606,23 @@ namespace server
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Public Commands: \f7me, say, pm, help, info, uptime and callops\nType \f2#help (command) \f7for information on a command");
 							break;
 						
-						}else if(textcmd("pausegame 1", text)){
+						}else if(textcmd("pausegame 1", text) && ci->privilege){
 							pausegame(true);
 							defformatstring(s)("\f0%s \f3paused \f7the game", colorname(ci));
 							sendservmsg(s);
 							break;
-						}else if(textcmd("pausegame 0", text)){
+						}else if(textcmd("pausegame 0", text) && ci->privilege){
 							pausegame(false);
 							defformatstring(s)("\f0%s \f0resumed \f7the game", colorname(ci));
 							sendservmsg(s);
 							break;
-						}else if(textcmd("pausegame", text)){
+						}else if(textcmd("pausegame 1", text)){
+						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
+							break;
+						}else if(textcmd("pausegame 0", text)){
+						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
+							break;
+						}else if(textcmd("pausegame", text) && ci->privilege){
 						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Sufficent command variables not supplied (use #pausegame 1 or #pausegame 0)");
 							break;
 
