@@ -2,7 +2,7 @@
 #include <GeoIP.h>
 #include "IRCbot.h"
 #include "sauerLua.h"
-extern ircBot irc;
+extern ircBot irc;   
 
 namespace game
 {
