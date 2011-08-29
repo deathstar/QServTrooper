@@ -5,6 +5,9 @@
 #include <pthread.h>
 #include "IRCbot.h"
 #include "sauerLua.h"
+
+VAR(enableirc, 0, 0, 1);
+
 extern ircBot irc;
 luaVM luavm;
 #ifdef STANDALONE
@@ -838,7 +841,7 @@ void *ServerInit(void *x)
 void *IRCInit(void *x)
 {
 	sleep(1); //avoid segmentation fault by waiting for the server to start before we begin irc
-    irc.init();
+    if(getvar("enableirc")) {irc.init();}
 }
 int main(int argc, char* argv[])
 {
