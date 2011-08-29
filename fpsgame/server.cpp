@@ -1896,6 +1896,7 @@ namespace server
     {
         int crc, matches;
 
+        crcinfo() {}
         crcinfo(int crc, int matches) : crc(crc), matches(matches) {}
 
         static int compare(const crcinfo *x, const crcinfo *y)
