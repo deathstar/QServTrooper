@@ -2,6 +2,9 @@
 #include <GeoIP.h>
 #include "IRCbot.h"
 #include "sauerLua.h"
+
+//QServ Server.cpp file 
+
 extern ircBot irc;  
 
 namespace game
@@ -21,7 +24,7 @@ extern ENetAddress masteraddress;
 
 namespace server
 {
-    struct server_entity            // server side version of "entity" type
+    struct server_entity // server side version of "entity" type
     {
         int type;
         int spawntime;
