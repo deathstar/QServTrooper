@@ -307,7 +307,7 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
 #endif
 }
 
-const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server is full", "connection timed out", "overflow", "banned"};
+const char *disc_reasons[] = { "normal", "end of packet error", "client number error", "temporary ban", "tag type error", "client is banned", "server is in private mode", "server is full", "connection timed out", "spam", "banned"};
 
 void disconnect_client(int n, int reason)
 {
@@ -319,7 +319,7 @@ void disconnect_client(int n, int reason)
     clients[n]->peer->data = NULL;
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
-    defformatstring(s)("client \f2(%s) \f7disconnected because: \f3%s\n", clients[n]->hostname, disc_reasons[reason]);
+    defformatstring(s)("\f0%s \f7disconnected: \f3%s\n", clients[n]->hostname, disc_reasons[reason]);
 	server::sendservmsg(s);
 	printf("client (%s) disconnected because: %s\n", clients[n]->hostname, disc_reasons[reason]);
 	irc.speak("%s disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
@@ -411,7 +411,7 @@ ENetSocket connectmaster()
     if(masteraddress.host == ENET_HOST_ANY)
     {
 #ifdef STANDALONE
-        printf("\33[33mLooking up %s...\33[0m\n", mastername);
+        printf("\33[33mEstablishing a connection to %s...\33[0m\n", mastername);
 #endif
         masteraddress.port = masterport;
         if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
@@ -425,7 +425,7 @@ ENetSocket connectmaster()
     if(sock == ENET_SOCKET_NULL || connectwithtimeout(sock, mastername, masteraddress) < 0)
     {
 #ifdef STANDALONE
-        printf(sock==ENET_SOCKET_NULL ? "could not open socket\n" : "could not connect\n");
+        printf(sock==ENET_SOCKET_NULL ? "could not open socket\n" : "could not connect to %s\n", mastername);
 #endif
         return ENET_SOCKET_NULL;
     }
@@ -467,9 +467,9 @@ void processmasterinput()
         while(args < end && isspace(*args)) args++;
 
         if(!strncmp(input, "failreg", cmdlen))
-            conoutf(CON_ERROR, "Master server registration failed: %s", args);
+            conoutf(CON_ERROR, "registration to: %s failed: %s", mastername, args);
         else if(!strncmp(input, "succreg", cmdlen))
-        	conoutf("Master server registration succeeded");
+        	conoutf("Established a connection and registered server to: %s", mastername);
         else server::processmasterinput(input, cmdlen, args);
 
         masterinpos = end - masterin.getbuf();
@@ -621,7 +621,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     if(totalmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = totalmillis;
-        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
+        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("Status: %d clients connected, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
 		serverhost->totalSentData = serverhost->totalReceivedData = 0;
     }
 
@@ -646,7 +646,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
 
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 
-		        printf("incomming connection (%s)\n", c.hostname);
+		        printf("Incomming connection (%s)\n", c.hostname);
                 int reason = server::clientconnect(c.num, c.peer->address.host, c.hostname);
                 if(!reason) nonlocalclients++;
                 else disconnect_client(c.num, reason);
@@ -663,7 +663,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
             {
                 client *c = (client *)event.peer->data;
                 if(!c) break;
-                printf("client disconnected (%s)\n", c->hostname);
+                printf("Client disconnected (%s)\n", c->hostname);
                 server::clientdisconnect(c->num);
                 nonlocalclients--;
                 c->type = ST_EMPTY;
@@ -745,7 +745,7 @@ bool setuplistenserver(bool dedicated)
         else serveraddress.host = address.host;
     }
     serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, serveruprate);
-    if(!serverhost) return servererror(dedicated, "could not create server host");
+    if(!serverhost) return servererror(dedicated, "\f3Error: \f7Could not start server (something is running on port %i)", serverport);
     loopi(maxclients)serverhost->peers[i].data = NULL;
     address.port = server::serverinfoport(serverport > 0 ? serverport : -1);
     pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
@@ -754,7 +754,7 @@ bool setuplistenserver(bool dedicated)
         enet_socket_destroy(pongsock);
         pongsock = ENET_SOCKET_NULL;
     }
-    if(pongsock == ENET_SOCKET_NULL) return servererror(dedicated, "could not create server info socket");
+    if(pongsock == ENET_SOCKET_NULL) return servererror(dedicated, "\f3Error: \f7could not create server info socket");
     else enet_socket_set_option(pongsock, ENET_SOCKOPT_NONBLOCK, 1);
     address.port = server::laninfoport();
     lansock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
