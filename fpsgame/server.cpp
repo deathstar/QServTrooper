@@ -13,7 +13,7 @@ namespace game
             if(!game::clientoption(args[i]))
 #endif
             if(!server::serveroption(args[i]))
-                conoutf(CON_ERROR, "unknown command: %s", args[i]);
+                conoutf(CON_ERROR, "Command not found: %s", args[i]);
     }
 }
 
@@ -409,22 +409,24 @@ namespace server
         int len;
     };
 
-    #define MAXDEMOS 5
+    #define MAXDEMOS 12
     vector<demofile> demos;
 
     bool demonextmatch = false;
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
-
-	VAR(shotguninsta, 0, 0, 1);
-	VAR(teamkill_penalty, 0, 0, 1);
-	VAR(msg_to_console, 0, 0, 1);
+	
 	SVAR(botname, "");
 	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
     SVAR(adminpass, "");
+
+	VAR(shotguninsta, 0, 0, 1);
+	VAR(teamkill_penalty, 0, 0, 1);
+	VAR(msg_to_console, 0, 0, 1);
+	
     VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
@@ -434,7 +436,6 @@ namespace server
 		}
 	});
 
-	//QServ Definitions
 	bool firstblood = false;
 
     void *newclientinfo() { return new clientinfo; }
@@ -446,8 +447,6 @@ namespace server
         n -= MAXCLIENTS;
         return bots.inrange(n) ? bots[n] : NULL;
     }
-
-
 
     vector<server_entity> sents;
     vector<savedscore> scores;
@@ -515,7 +514,7 @@ namespace server
         }
         return false;
     }
-     //Code add start
+
 	string blkmsg[3] = {"fuck", "shit", "cunt"};
 	char textcmd(const char *a, const char *text){
 		for (int b=0; b<strlen(a); b++) {
@@ -541,7 +540,7 @@ namespace server
 		}
 		if(bad){
 			int n = rand() % 7 + 0;
-			defformatstring(d)("\f%i*^.^* \f0%s!", n, ci->name);
+			defformatstring(d)("\f%i:0 \f0%s!", n, ci->name);
 			sendservmsg(d);
 			bad=false;
 		}
@@ -549,10 +548,11 @@ namespace server
 
 	void startserv()
 	{
-	char *servername = serverdesc;
-	char *passwrd = adminpass;
-	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please name it in \"server-init.cfg\"\33[0m\n");}
-	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please change it in \"server-init.cfg\"\33[0m\n");}
+	char *servername = serverdesc; //server description in server-init is name
+	char *passwrd = adminpass; 
+	
+	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
+	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
 	printf("\33[34mServer with name \"%s\" and admin password \"%s\" started on port %i \nCtrl-C to exit and stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
 	}
 
@@ -803,7 +803,7 @@ namespace server
         char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
         while(trim>timestr && isspace(*--trim)) *trim = '\0';
         formatstring(d.info)("%s: %s, %s, %.2f%s", timestr, modename(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-        defformatstring(msg)("demo \"%s\" recorded", d.info);
+        defformatstring(msg)("Demo \"%s\" recorded", d.info);
         sendservmsg(msg);
         d.data = new uchar[len];
         d.len = len;
@@ -825,7 +825,7 @@ namespace server
         stream *f = opengzfile(NULL, "wb", demotmp);
         if(!f) { DELETEP(demotmp); return; }
 
-        sendservmsg("recording demo");
+        sendservmsg("Recording demo...");
 
         demorecord = f;
 
@@ -856,13 +856,13 @@ namespace server
         {
             loopv(demos) delete[] demos[i].data;
             demos.shrink(0);
-            sendservmsg("cleared all demos");
+            sendservmsg("Deleted all demos");
         }
         else if(demos.inrange(n-1))
         {
             delete[] demos[n-1].data;
             demos.remove(n-1);
-            defformatstring(msg)("cleared demo %d", n);
+            defformatstring(msg)("Deleted demo %d", n);
             sendservmsg(msg);
         }
     }
@@ -882,7 +882,7 @@ namespace server
 
         loopv(clients) sendf(clients[i]->clientnum, 1, "ri3", N_DEMOPLAYBACK, 0, clients[i]->clientnum);
 
-        sendservmsg("demo playback finished");
+        sendservmsg("Demo finished playing.");
 
         loopv(clients) sendwelcome(clients[i]);
     }
@@ -895,14 +895,14 @@ namespace server
         msg[0] = '\0';
         defformatstring(file)("%s.dmo", smapname);
         demoplayback = opengzfile(file, "rb");
-        if(!demoplayback) formatstring(msg)("could not read demo \"%s\"", file);
+        if(!demoplayback) formatstring(msg)("\f3Error: \f7Could not play demo \"%s\"", file);
         else if(demoplayback->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
-            formatstring(msg)("\"%s\" is not a demo file", file);
+            formatstring(msg)("\f3Error: \f7\"%s\" is not a demo file", file);
         else
         {
             lilswap(&hdr.version, 2);
-            if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of Cube 2: Sauerbraten", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-            else if(hdr.protocol!=PROTOCOL_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of Cube 2: Sauerbraten", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+            if(hdr.version!=DEMO_VERSION) formatstring(msg)("Demo \"%s\" requires an %s version of Cube 2: Sauerbraten", file, hdr.version<DEMO_VERSION ? "older" : "newer");
+            else if(hdr.protocol!=PROTOCOL_VERSION) formatstring(msg)("Demo \"%s\" requires an %s version of Cube 2: Sauerbraten", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
         }
         if(msg[0])
         {
@@ -911,7 +911,7 @@ namespace server
             return;
         }
 
-        formatstring(msg)("playing demo \"%s\"", file);
+        formatstring(msg)("Playing demo \"%s\"", file);
         sendservmsg(msg);
 
         demomillis = 0;
@@ -1036,7 +1036,7 @@ namespace server
         allowedips.shrink(0);
         string msg;
 		string msg_irc;
-        if(val && authname) formatstring(msg)("%s claimed %s as '\fs\f5%s\fr'", colorname(ci), name, authname);
+        if(val && authname) formatstring(msg)("\f0%s \f7claimed \f1%s \f7as '\fs\f5%s\fr'", colorname(ci), name, authname);
         else formatstring(msg)("\f0%s \f7%s \f1%s", colorname(ci), val ? "claimed" : "relinquished", name);
         sendservmsg(msg);
 		formatstring(msg_irc)("%s %s %s", colorname(ci), val ? "claimed" : "relinquished", name);
@@ -1440,7 +1440,10 @@ namespace server
     int servuptime = 0;
     void changemap(const char *s, int mode)
     {
-		out(ECHO_ALL, "Map changed to: %s", s);
+		out(ECHO_SERV, "Loaded map: \f1%s", s);
+		out(ECHO_CONSOLE, "Loaded map: %s", s);
+		out(ECHO_IRC, "Loaded map: %s", s);
+		
         stopdemo();
         pausegame(false);
         if(smode) smode->reset(false);
@@ -1531,7 +1534,7 @@ namespace server
             if(demorecord) enddemorecord();
             if(best && (best->count > (force ? 1 : maxvotes/2)))
             {
-                sendservmsg(force ? "vote passed by default" : "vote passed by majority");
+                sendservmsg(force ? "Vote passed by \f4default" : "vote passed by \f0majority");
                 sendf(-1, 1, "risii", N_MAPCHANGE, best->map, best->mode, 1);
                 changemap(best->map, best->mode);
             }
@@ -1548,7 +1551,7 @@ namespace server
         stopdemo();
         if(hasnonlocalclients() && !mapreload)
         {
-            defformatstring(msg)("local player forced %s on map \f1%s", modename(mode), map);
+            defformatstring(msg)("Host forced \f2%s \f7on map \f1%s", modename(mode), map);
             sendservmsg(msg);
         }
         sendf(-1, 1, "risii", N_MAPCHANGE, map, mode, 1);
@@ -1567,7 +1570,7 @@ namespace server
             if(demorecord) enddemorecord();
             if((!ci->local || hasnonlocalclients()) && !mapreload)
             {
-                defformatstring(msg)("%s forced %s on map \f1%s", ci->privilege && mastermode>=MM_VETO ? privname(ci->privilege) : "local player", modename(ci->modevote), ci->mapvote);
+                defformatstring(msg)("%s forced \f2%s \f7on map \f1%s", ci->privilege && mastermode>=MM_VETO ? privname(ci->privilege) : "Host", modename(ci->modevote), ci->mapvote);
                 sendservmsg(msg);
             }
             sendf(-1, 1, "risii", N_MAPCHANGE, ci->mapvote, ci->modevote, 1);
@@ -1575,9 +1578,9 @@ namespace server
         }
         else
         {
-            defformatstring(msg)("\f0%s \f7suggests %s \f7on map \f1%s \f7(use \f2/map %s \f7to vote)", colorname(ci), modename(reqmode), map, map);
+            defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2/(mode) %s \f7to vote)", colorname(ci), modename(reqmode), map, map);
             sendservmsg(msg);
-			out(ECHO_IRC, "%s suggests %s on map %s", colorname(ci), modename(reqmode), map);
+			out(ECHO_IRC, "%s votes for a %s on map %s", colorname(ci), modename(reqmode), map);
             checkvotes();
         }
     }
@@ -1601,7 +1604,6 @@ namespace server
         ci->state.frags += smode ? smode->fragvalue(ci, ci) : -1;
         ci->state.deaths++;
         sendf(-1, 1, "ri4", N_DIED, ci->clientnum, ci->clientnum, gs.frags);
-		//this message ends up spamming things more than looking good, every time you become a spectator, etc.
         //defformatstring(d)("\f0%s \f7was looking good until he killed himself", colorname(ci));
 		//sendservmsg(d);
         ci->position.setsize(0);
@@ -1615,8 +1617,7 @@ namespace server
         suicide(ci);
     }
 
-
-    void dodamage(clientinfo *target, clientinfo *actor, int damage, int gun, const vec &hitpush = vec(0, 0, 0))
+ 	void dodamage(clientinfo *target, clientinfo *actor, int damage, int gun, const vec &hitpush = vec(0, 0, 0))
     {
         gamestate &ts = target->state;
         ts.dodamage(damage);
@@ -1636,11 +1637,11 @@ namespace server
 			            {
 			                actor->state.teamkills++;
 			                target->state.deaths++;
-							if(actor == target) {} //If the target kills himself, we don't echo anything//
+							if(actor == target) {} //If the target kills himself, we don't echo anything
 							else {
 								if(getvar("teamkill_penalty")) {
-								if(actor->state.state==CS_ALIVE) { //If the teamkiller is alive
-									suicide(actor); //Kill him
+								if(actor->state.state==CS_ALIVE) { 
+									suicide(actor); 
 								    sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f6Attention: \f7You have been suicided as a penalty for fragging your teammate.");}
 								}
 			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
@@ -1669,8 +1670,7 @@ namespace server
         }
     }
 
-   
-    void explodeevent::process(clientinfo *ci)
+ 	void explodeevent::process(clientinfo *ci)
     {
         gamestate &gs = ci->state;
         switch(gun)
@@ -1810,7 +1810,7 @@ namespace server
                 defformatstring(text)("%s", banners[rnd(banners.length())]);
                 sendservmsg(text);
                 lastshow = lastmillis;
-            }else return;
+            } else return;
         }
     }
 
@@ -1937,7 +1937,7 @@ namespace server
         {
             clientinfo *ci = clients[i];
             if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || ci->clientmap[0] || ci->mapcrc >= 0 || (req < 0 && ci->warned)) continue;
-            formatstring(msg)("\f3Warning: \f0%s \f7is playing with a modified map: \"%s\"", colorname(ci), smapname);
+            formatstring(msg)("\f3Warning: \f0%s \f7has modified map: \f1\"%s\"", colorname(ci), smapname);
             sendf(req, 1, "ris", N_SERVMSG, msg);
             if(req < 0) ci->warned = true;
         }
@@ -1949,7 +1949,7 @@ namespace server
             {
                 clientinfo *ci = clients[j];
                 if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || !ci->clientmap[0] || ci->mapcrc != info.crc || (req < 0 && ci->warned)) continue;
-                formatstring(msg)("\f3Warning: \f0%s \f7is playing with a modified map: \"%s\"", colorname(ci), smapname);
+                formatstring(msg)("\f3Warning: \f0%s \f7has modified map map: \f1\"%s\"", colorname(ci), smapname);
                 sendf(req, 1, "ris", N_SERVMSG, msg);
                 if(req < 0) ci->warned = true;
             }
@@ -2010,7 +2010,7 @@ namespace server
             if(ci->privilege) setmaster(ci, false);
             if(smode) smode->leavegame(ci, true);
             ci->state.timeplayed += lastmillis - ci->state.lasttimeplayed;
-			defformatstring(s)("Disconnected: %s", colorname(ci)); //ties in with disconnected client message
+			defformatstring(s)("%s disconnected", colorname(ci)); //ties in with disconnected client message
 			puts(s);
 			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
             savescore(ci);
@@ -2176,9 +2176,9 @@ namespace server
         if(mapdata) DELETEP(mapdata);
         if(!len) return;
         mapdata = opentempfile("mapdata", "w+b");
-        if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "failed to open temporary file for map"); return; }
+        if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to open temporary file for map"); return; }
         mapdata->write(data, len);
-        defformatstring(msg)("\f0%s \f7uploaded a map to the server, type \f2\"/getmap\" \f7to receive it.", colorname(ci));
+        defformatstring(msg)("\f0%s \f7uploaded a map, type \f2\"/getmap\" \f7to recieve it.", colorname(ci));
         sendservmsg(msg);
     }
 
@@ -2274,11 +2274,11 @@ namespace server
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else
                 {
-                    defformatstring(b)("\f0%s \f7is connected from \f2%s", colorname(ci), ip);
-                    irc.speak("%s (%s) is connected from %s", colorname(ci), ci->ip, ip);
+                    defformatstring(b)("\f0%s \f7has connected from \f2%s", colorname(ci), ip);
+                    irc.speak("%s (%s) has connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
-                defformatstring(l)("Welcome to %s, \f0%s\f7! Enjoy your stay", servername, colorname(ci));
+                defformatstring(l)("Welcome to %s, \f0%s\f7. Have a nice stay; type \f1\"#help\" for a list of commands", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)("Connected: %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
@@ -2829,11 +2829,11 @@ namespace server
 						   if(text[5] == ' '){
 						   	int i = text[4] - '0';
 						    if (clients[i]->connected){
-						    	defformatstring(s)("PM from \f0%s\f7:%s", ci->name, text+5);
+						    	defformatstring(s)("Private message from \f0%s\f7:%s", ci->name, text+5);
 						    	sendf(i, 1, "ris", N_SERVMSG, s);
-						    	defformatstring(d)("PM \f1\"%s\" \f7sent to \f0%s", text+6, colorname(clients[i]));
+						    	defformatstring(d)("Private message \f1\"%s\" \f7sent to \f0%s", text+6, colorname(clients[i]));
 						    	sendf(ci->clientnum, 1, "ris", N_SERVMSG, d);
-								out(ECHO_IRC, "%s -> %s | Private Message: %s", colorname(ci), colorname(clients[i]), text+6);
+								//out(ECHO_IRC, "%s -> %s | Private Message: %s", colorname(ci), colorname(clients[i]), text+6); * Echo private message to IRC
 								break;
 					   }else{
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7incorrect client specified");
@@ -2851,7 +2851,7 @@ namespace server
 						   break;
 
 					   }else{
-						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Command not found");
+						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Unknown command");
 						   break;
 						}
                     }
@@ -2983,7 +2983,7 @@ namespace server
 
             case N_CLIENTPING:
             {
-				if((ci->ping > 400) &&  !ci->pingwarned) {defformatstring(s)("\f6Attention: \f0%s\f7, please lower your ping; it is higher than this servers maximum ping limit (400)", colorname(ci)); sendservmsg(s); ci->pingwarned = true;}
+				if((ci->ping > 425) &&  !ci->pingwarned) {defformatstring(s)("\f6Attention: \f0%s\f7, please lower your ping; it is higher than this servers maximum ping limit (425)", colorname(ci)); sendservmsg(s); ci->pingwarned = true;}
                 int ping = getint(p);
                 if(ci)
                 {
@@ -3006,7 +3006,7 @@ namespace server
                         if(mm>=MM_PRIVATE)
                         {
 							if(numclients(-1,false)<=1){
-							defformatstring(i)("\f3Error: \f7Mastermode 3 (Private) is disabled when only 1 client is in the server");
+							defformatstring(i)("\f3Error: \f7Private mastermode is disabled with only one client on the server");
 							sendservmsg(i);
 							mastermode = MM_OPEN;
 							}
@@ -3059,7 +3059,7 @@ namespace server
 
                 if(spinfo->state.state!=CS_SPECTATOR && val)
 					{
-				    defformatstring(l)("\f0%s \f7is now spectating", spinfo->name);
+				    defformatstring(l)("\f0%s \f7is now a spectator", spinfo->name);
 					sendservmsg(l);
 					printf("%s is now a spectator\n", spinfo->name);
                     if(spinfo->state.state==CS_ALIVE) suicide(spinfo);
@@ -3070,9 +3070,9 @@ namespace server
                 }
                 else if(spinfo->state.state==CS_SPECTATOR && !val)
                 {
-					defformatstring(l)("\f0%s \f7is no longer spectating", spinfo->name);
+					defformatstring(l)("\f0%s \f7is no longer a spectator", spinfo->name);
 					sendservmsg(l);
-					printf("%s is no longer spectating\n", spinfo->name);
+					printf("%s is no longer a spectator\n", spinfo->name);
                     spinfo->state.state = CS_DEAD;
                     spinfo->state.respawn();
                     spinfo->state.lasttimeplayed = lastmillis;
@@ -3112,9 +3112,9 @@ namespace server
                 int val = getint(p);
                 if(ci->privilege<PRIV_ADMIN && !ci->local) break;
                 demonextmatch = val!=0;
-                defformatstring(msg)("Demo recording has been %s for next match", demonextmatch ? "\f0enabled" : "\f3disabled");
+                defformatstring(msg)("Demo recording has is %s for next map", demonextmatch ? "\f0enabled" : "\f3disabled");
                 sendservmsg(msg);
-				out(ECHO_IRC, "%s has %s demo recording for the next match", colorname(ci), demonextmatch ? "enabled" : "disabled");
+				out(ECHO_IRC, "\f0%s \f7has %s demo recording for the next map", colorname(ci), demonextmatch ? "\f0enabled" : "\f3disabled");
                 break;
             }
 
@@ -3151,13 +3151,13 @@ namespace server
                 {
                     sendf(sender, 1, "ris", N_SERVMSG, "Server uploading map...");
 
-					defformatstring(l)("\f0%s \f7is downloading map \f1\"%s\"", colorname(ci), smapname);
+					defformatstring(l)("\f0%s \f7is receiving map \f1\"%s\"", colorname(ci), smapname);
 					sendservmsg(l);
 					printf("%s is downloading the map...", colorname(ci));
                     sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
                     ci->needclipboard = totalmillis;
                 }
-                else sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7No map to send");
+                else sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7No map to send (none uploaded)");
                 break;
 
             case N_NEWMAP:
