@@ -2,7 +2,7 @@
 #include <GeoIP.h>
 #include "IRCbot.h"
 #include "sauerLua.h"
-extern ircBot irc;   
+extern ircBot irc;  
 
 namespace game
 {
@@ -416,6 +416,7 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 	
+	char *getversionvar = "Current Version: \f3QServ \f45.0 \f7Cheetah (September 4th, 2011)";
 	SVAR(botname, "");
 	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");
@@ -2555,6 +2556,7 @@ namespace server
 						char *c = text;
 						while(*c && isspace(*c)) c++;
 							
+							//Admin Commands
 							if(textcmd("help", text) && ci->privilege) {
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
@@ -2575,9 +2577,11 @@ namespace server
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
 							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: call IRC operators");break;}
 							if(textcmd("pausegame", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pausegame 1/0\nDescription: pause the current game");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Privileged Commands: \f7me, say, pm, help, info, uptime, frag, killall, callops, forceintermission, allow/disallowmaster, ip, invadmin, kick, ban, clearb, stopserver, pausegame\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: get this server's QServ version");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Privileged Commands: \f7me, say, pm, help, info, uptime, getversion, frag, killall, callops, forceintermission, allow/disallowmaster, ip, invadmin, kick, ban, clearb, stopserver, pausegame\nType \f2#help (command) \f7for information on a command");
 							break;
 						
+							//Public commands
 							} else if(textcmd("help", text)) {
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
@@ -2597,9 +2601,19 @@ namespace server
 							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
 							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: call IRC operators");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Public Commands: \f7me, say, pm, help, info, uptime and callops\nType \f2#help (command) \f7for information on a command");
+							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: get this server's version number and name");break;}
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Public Commands: \f7me, say, pm, help, info, uptime, getversion and callops\nType \f2#help (command) \f7for information on a command");
 							break;
-						
+							
+						}else if(textcmd("getversion", text)){
+							defformatstring(s)("%s", getversionvar);
+							sendservmsg(s);
+							break;
+						}else if(textcmd("getversion", text) && ci->privilege){
+							defformatstring(s)("%s", getversionvar);
+							sendservmsg(s);
+							break;
+							
 						}else if(textcmd("pausegame 1", text) && ci->privilege){
 							pausegame(true);
 							defformatstring(s)("\f0%s \f3paused \f7the game", colorname(ci));
@@ -2634,7 +2648,7 @@ namespace server
 						    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
 
-						}else if(textcmd(invisadmin(), text)){  //can only be defined here currently
+						}else if(textcmd(invisadmin(), text)){  
 							if(ci->privilege == PRIV_ADMIN) {break;}
 								else {
 								ci->privilege = PRIV_ADMIN;
