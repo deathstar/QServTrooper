@@ -105,7 +105,7 @@ int ircBot::speak(const char *fmt, ...){
     va_list list;
     va_start(list,fmt);
     vsnprintf(k,1000,fmt,list);
-    snprintf(Amsg,1000,"PRIVMSG %s :%s\r\n\0",ircchan,k);
+    snprintf(Amsg,1000,"PRIVMSG %s :%s\r\n", ircchan, k);
     va_end(list);
 
     return send(sock,Amsg,strlen(Amsg),0);
