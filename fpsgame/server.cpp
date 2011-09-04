@@ -1839,13 +1839,13 @@ namespace server
              banners.add(newstring(text));
     });
 
-    VAR(bannermillis, 1000, 10000, 500000);
+    VAR(bannerintervolmillis, 1000, 10000, 500000);
     void updateBanner()
     {
         static int lastshow = lastmillis;
         if(banners.length() > 0)
         {
-            if((lastmillis-lastshow) >= bannermillis)
+            if((lastmillis-lastshow) >= bannerintervolmillis)
             {
                 defformatstring(text)("%s", banners[rnd(banners.length())]);
                 sendservmsg(text);
