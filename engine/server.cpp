@@ -745,7 +745,7 @@ bool setuplistenserver(bool dedicated)
         else serveraddress.host = address.host;
     }
     serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, serveruprate);
-    if(!serverhost) return servererror(dedicated, "\f3Error: \f7Could not start server (something is running on port %i)", serverport);
+    if(!serverhost) return servererror(dedicated, "\f3Error: \f7A server is already running on the same port");
     loopi(maxclients)serverhost->peers[i].data = NULL;
     address.port = server::serverinfoport(serverport > 0 ? serverport : -1);
     pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
