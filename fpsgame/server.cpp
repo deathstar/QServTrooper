@@ -129,6 +129,10 @@ namespace server
         int frags, flags, deaths, teamkills, shotdamage, damage;
         int lasttimeplayed, timeplayed;
         float effectiveness;
+		
+		int64_t lastfragmillis;
+		int multifrags;
+		int spreefrags;
 
         gamestate() : state(CS_DEAD), editstate(CS_DEAD) {}
 
@@ -152,6 +156,8 @@ namespace server
             timeplayed = 0;
             effectiveness = 0;
             frags = flags = deaths = teamkills = shotdamage = damage = 0;
+			lastfragmillis = 0;
+			multifrags = spreefrags = 0;
 
             respawn();
         }
@@ -426,6 +432,9 @@ namespace server
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
     SVAR(adminpass, "");
+	SVAR(spreesuicidemsg, "was looking good until he killed himself");
+	SVAR(spreeendmsg, "'s killing spree was ended by");
+	VAR(minspreefrags, 2, 5, INT_MAX); // if the player had at least this many frags, the spree end message is announced
 
 	VAR(shotguninsta, 0, 0, 1);
 	VAR(teamkill_penalty, 0, 0, 1);
@@ -1582,7 +1591,7 @@ namespace server
         }
         else
         {
-            defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2/(mode) %s \f7to vote)", colorname(ci), modename(reqmode), map, map);
+            defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2/mode map \f7to vote)", colorname(ci), modename(reqmode), map, map);
             sendservmsg(msg);
 			out(ECHO_IRC, "%s votes for a %s on map %s", colorname(ci), modename(reqmode), map);
             checkvotes();
@@ -1620,6 +1629,21 @@ namespace server
     {
         suicide(ci);
     }
+
+		struct spreemsg {
+		int frags;
+		string msg1, msg2;
+	};
+	vector <spreemsg> spreemessages;
+	ICOMMAND(addspreemsg, "iss", (int *frags, char *msg1, char *msg2), { spreemsg m; m.frags = *frags; copystring(m.msg1, msg1); copystring(m.msg2, msg2); spreemessages.add(m); });
+	struct multikillmsg {
+		int frags;
+		string msg;
+	};
+	vector <multikillmsg> multikillmessages;
+	SVAR(defmultikillmsg, "MULTI KILL"); // this is the default message for multikills that don't have a string. it is followed by the number of frags in braces
+	VAR(minmultikill, 2, 2, INT_MAX); // minimum number of kills for a multi kill
+	ICOMMAND(addmultikillmsg, "is", (int *frags, char *msg), { multikillmsg m; m.frags = *frags; copystring(m.msg, msg); multikillmessages.add(m); });
 
  	void dodamage(clientinfo *target, clientinfo *actor, int damage, int gun, const vec &hitpush = vec(0, 0, 0))
     {
@@ -1663,8 +1687,20 @@ namespace server
                 actor->state.effectiveness += fragvalue*friends/float(max(enemies, 1));
             }
             sendf(-1, 1, "ri4", N_DIED, target->clientnum, actor->clientnum, actor->state.frags);
-			defformatstring(s)("\f0%s \f7drew \f6FIRST BLOOD!", colorname(actor));
-            if(!firstblood && actor != target) { firstblood = true; sendservmsg(s); }
+            if(!firstblood && actor != target) { firstblood = true; out(ECHO_SERV, "\f0%s \f7drew \f6FIRST BLOOD!!!", colorname(actor)); }
+			if(actor != target) actor->state.spreefrags++;
+			if(target->state.spreefrags >= minspreefrags) {
+				if(actor == target)
+					out(ECHO_SERV, "\f0%s \f7%s", colorname(target), spreesuicidemsg);
+				else
+					out(ECHO_SERV, "\f0%s\f7%s \f6%s", colorname(target), spreeendmsg, colorname(actor));
+			}
+			target->state.spreefrags = 0;
+			target->state.multifrags = 0;
+			target->state.lastfragmillis = 0;
+			loopv(spreemessages) {
+				if(actor->state.spreefrags == spreemessages[i].frags) out(ECHO_SERV, "\f0%s \f7%s \f6%s", colorname(actor), spreemessages[i].msg1, spreemessages[i].msg2);
+			}
             target->position.setsize(0);
             if(smode) smode->died(target, actor);
             ts.state = CS_DEAD;
@@ -2282,7 +2318,7 @@ namespace server
                     irc.speak("%s (%s) has connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
-                defformatstring(l)("Welcome to %s, \f0%s\f7. Have a nice stay; type \f1\"#help\" for a list of commands", servername, colorname(ci));
+                defformatstring(l)("Welcome to %s, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)("Connected: %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
