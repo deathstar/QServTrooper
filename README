@@ -1,13 +1,22 @@
-QServ 5.0 Cheetah by George "DeathStar" Scott - a elegant intuitive mod for Cube 2: Sauerbraten (Justice Edition)
-=========================================================
+=================
+QServ 5.0 Cheetah 
+=================
 
-Refer to the QServ Wiki at: http://github.com/deathstar/QServ/wiki
-If you have any problems email George: x90265@gmail.com
+By: George Scott (x90265@gmail.com)
 
-Cube 2: Sauerbraten Code License
-=================================
+Licensed under Creative Commons (BY-NC-SA): http://creativecommons.org/licenses/by-nc-sa/3.0/
 
-You may use the Sauerbraten source code if you abide by the ZLIB license: http://www.opensource.org/licenses/zlib-license.php
+Small (only 4.3 MB), 20+ Added Commands, IRC Bot, server log, Player location by IP, easy to use, fast server, uses little CPU, updated frequently w/ latest Sauerbraten code, runnable on Mac, Windows & Linux 
+
+Copyright © 2009-2011 George D. Scott
+
+QServ Wiki: http://github.com/deathstar/QServ/wiki
+
+===================
+Cube 2: Sauerbraten 
+===================
+
+licenced under Zlib (open-source): http://www.opensource.org/licenses/zlib-license.php
 
 Copyright (C) 2001-2010 Wouter van Oortmerssen, Lee Salzman, Mike Dysart, Robert Pointon, and Quinton Reeves
 
