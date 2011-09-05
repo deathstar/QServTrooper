@@ -220,7 +220,7 @@ namespace server
     struct clientinfo
     {
         int clientnum, ownernum, connectmillis, sessionid, overflow, connectedmillis;
-	char *ip; //ipstring
+		char *ip; //ipstring
         string name, team, mapvote;
         int playermodel;
         int modevote;
@@ -425,7 +425,7 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 	
-	char *getversionvar = "Current Version: \f3QServ \f45.0 \f7Cheetah (September 4th, 2011)";
+	SVAR(qservversion, "");
 	SVAR(botname, "");
 	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");
@@ -2318,7 +2318,7 @@ namespace server
                     irc.speak("%s (%s) has connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
-                defformatstring(l)("Welcome to %s, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
+                defformatstring(l)("Welcome to %s running \f4QServ\f7, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				defformatstring(d)("Connected: %s", colorname(ci)); //this will tie in with incomming connection on the same line
 				puts(d);
@@ -2645,11 +2645,11 @@ namespace server
 							break;
 							
 						}else if(textcmd("getversion", text)){
-							defformatstring(s)("%s", getversionvar);
+							defformatstring(s)("%s", qservversion);
 							sendservmsg(s);
 							break;
 						}else if(textcmd("getversion", text) && ci->privilege){
-							defformatstring(s)("%s", getversionvar);
+							defformatstring(s)("%s", qservversion);
 							sendservmsg(s);
 							break;
 							
