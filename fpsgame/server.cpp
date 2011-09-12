@@ -553,7 +553,7 @@ namespace server
 		}
 		if(bad){
 			int n = rand() % 7 + 0;
-			defformatstring(d)("\f%i:0 \f0%s!", n, ci->name);
+			defformatstring(d)("\f%i:[] \f0%s!", n, ci->name);
 			sendservmsg(d);
 			bad=false;
 		}
@@ -566,7 +566,7 @@ namespace server
 	
 	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
 	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
-	printf("\33[34mServer with name \"%s\" and admin password \"%s\" started on port %i \nCtrl-C to exit and stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
+	printf("\33[34mServer with name \"%s\" and admin password \"%s\" started on port %i \nCtrl-C to stop the server\33[0m\n\n", servername, passwrd, getvar("serverport"));
 	}
 
     void serverinit()
@@ -895,7 +895,7 @@ namespace server
 
         loopv(clients) sendf(clients[i]->clientnum, 1, "ri3", N_DEMOPLAYBACK, 0, clients[i]->clientnum);
 
-        sendservmsg("Demo finished playing.");
+        sendservmsg("Demo finished playing");
 
         loopv(clients) sendwelcome(clients[i]);
     }
@@ -1670,7 +1670,7 @@ namespace server
 								if(getvar("teamkill_penalty")) {
 								if(actor->state.state==CS_ALIVE) { 
 									suicide(actor); 
-								    sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f6Attention: \f7You have been suicided as a penalty for fragging your teammate.");}
+								    sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f1Notice: \f7You were suicided for fragging your teammate");}
 								}
 			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 						    sendservmsg(msg);
@@ -1687,7 +1687,7 @@ namespace server
                 actor->state.effectiveness += fragvalue*friends/float(max(enemies, 1));
             }
             sendf(-1, 1, "ri4", N_DIED, target->clientnum, actor->clientnum, actor->state.frags);
-            if(!firstblood && actor != target) { firstblood = true; out(ECHO_SERV, "\f0%s \f7drew \f6FIRST BLOOD!!!", colorname(actor)); }
+            if(!firstblood && actor != target) { firstblood = true; out(ECHO_SERV, "\f0%s \f7scored \f6THE FIRST KILL!!!", colorname(actor)); }
 			if(actor != target) actor->state.spreefrags++;
 			if(target->state.spreefrags >= minspreefrags) {
 				if(actor == target)
@@ -2174,7 +2174,7 @@ namespace server
         if(!requestmasterf("reqauth %u %s\n", ci->authreq, ci->authname))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Not connected to authentication server");
         }
     }
 
@@ -2188,7 +2188,7 @@ namespace server
         if(!requestmasterf("confauth %u %s\n", id, val))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Not connected to authentication server");
         }
     }
 
@@ -2218,7 +2218,7 @@ namespace server
         mapdata = opentempfile("mapdata", "w+b");
         if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to open temporary file for map"); return; }
         mapdata->write(data, len);
-        defformatstring(msg)("\f0%s \f7uploaded a map, type \f2\"/getmap\" \f7to recieve it.", colorname(ci));
+        defformatstring(msg)("\f0%s \f7uploaded a map, type \f2\"/getmap\" \f7to recieve it", colorname(ci));
         sendservmsg(msg);
     }
 
@@ -2314,7 +2314,7 @@ namespace server
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else
                 {
-                    defformatstring(b)("\f0%s \f7has connected from \f2%s", colorname(ci), ip);
+                    defformatstring(b)("\f0%s \f7connected from \f2%s", colorname(ci), ip);
                     irc.speak("%s (%s) has connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
@@ -2780,7 +2780,6 @@ namespace server
 						}else if(textcmd("forceintermission", text) && ci->privilege){
 							startintermission();
 				            break;
-
 					    }else if(textcmd("forceintermission", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 			                break;
@@ -2790,7 +2789,6 @@ namespace server
 							out(ECHO_SERV, "master has been \f0enabled");
 							out(ECHO_IRC, "Master has been enabled");
 							break;
-
 						}else if(textcmd("allowmaster", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 							break;
@@ -2800,7 +2798,6 @@ namespace server
 							out(ECHO_SERV, "master has been \f3disabled");
 							out(ECHO_IRC, "Master has been disabled");
 							break;
-
 						}else if(textcmd("disallowmaster", text)){
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
 							break;
@@ -2847,10 +2844,10 @@ namespace server
 								sendservmsg(s);
 								out(ECHO_IRC, "%s %s", ci->name, text+3);
 							break;
-
 						}else if(text[3] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#me (message)");
 						    break;
+						
 						}
 						}else if(textcmd("say", text)) {
 							if(text[4] == ' ') {
@@ -2858,11 +2855,11 @@ namespace server
 								sendservmsg(d);
 								out(ECHO_IRC, "%s: %s", colorname(ci), text+5);
 							break;
-
 						}else if(text[4] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#say (mesage)");
 							break;
 						}
+						
                         }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
 							out(ECHO_ALL, "%s stopped the server", colorname(ci));
                             kicknonlocalclients();
@@ -3210,7 +3207,7 @@ namespace server
                     sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
                     ci->needclipboard = totalmillis;
                 }
-                else sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7No map to send (none uploaded)");
+                else sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7No map to send (none previously uploaded)");
                 break;
 
             case N_NEWMAP:
