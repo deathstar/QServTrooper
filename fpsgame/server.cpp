@@ -2050,14 +2050,14 @@ namespace server
             if(ci->privilege) setmaster(ci, false);
             if(smode) smode->leavegame(ci, true);
             ci->state.timeplayed += lastmillis - ci->state.lasttimeplayed;
-			defformatstring(s)("%s disconnected", colorname(ci)); //ties in with disconnected client message
+			defformatstring(s)("%s disconnected", ci->name); //ties in with disconnected client message
 			puts(s);
 			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
             savescore(ci);
             sendf(-1, 1, "ri2", N_CDIS, n);
             clients.removeobj(ci);
             aiman::removeai(ci);
-            if(!numclients(-1, false, true)) noclients(); // bans clear when server empties
+            //if(!numclients(-1, false, true)) noclients(); // bans clear when server empties
         }
         else connects.removeobj(ci);
     }
@@ -2311,6 +2311,8 @@ namespace server
                 gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
+					defformatstring(b)("\f0%s \f7connected from \f2Unknown", colorname(ci));
+					server::sendservmsg(b);
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else
                 {
@@ -2318,10 +2320,9 @@ namespace server
                     irc.speak("%s (%s) has connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
-                defformatstring(l)("Welcome to %s running \f4QServ\f7, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
+                defformatstring(l)("Welcome to %s \f7running \f4QServ\f7, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
-				defformatstring(d)("Connected: %s", colorname(ci)); //this will tie in with incomming connection on the same line
-				puts(d);
+				printf("Connected: %s\n", ci->name);
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
             }
         }
@@ -2597,6 +2598,7 @@ namespace server
 							
 							//Admin Commands
 							if(textcmd("help", text) && ci->privilege) {
+							if(textcmd("stats", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stats (cn)\nDescription: get the stats of a client");break;}
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
 							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: send a private message to another player");break;}
@@ -2622,6 +2624,7 @@ namespace server
 						
 							//Public commands
 							} else if(textcmd("help", text)) {
+							if(textcmd("stats", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stats (cn)\nDescription: get the stats of a client");break;}
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
 							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: send a private message to another player");break;}
@@ -2642,6 +2645,36 @@ namespace server
 							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: call IRC operators");break;}
 							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: get this server's version number and name");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Public Commands: \f7me, say, pm, help, info, uptime, getversion and callops\nType \f2#help (command) \f7for information on a command");
+							break;
+							
+						//frags, flags, deaths, teamkills, shotdamage, damage
+						}else if(textcmd("stats", text)) {
+							if(text[6] == ' ') {
+								int cn1 = text[7] - '0'; //first int char								
+								int cn2 = text[8] - '0'; //second int char
+								char CNc[255]; 
+								
+								sprintf(CNc, "%d%d", cn1, cn2);
+								int iCN = atoi(CNc); //combined int's to make up CN
+								
+								clientinfo *cn;
+								if(!isalpha(iCN)) {
+									if(iCN < 100) {
+										cn =(clientinfo *)getclientinfo(iCN);
+									}
+								}
+							
+								if(cn != NULL) {
+									if (cn->connected){
+										defformatstring(s)("Stats for: \f0%s \n\f7Frags: \f0%i \f7Deaths: \f3%i \f7Teamkills: \f1%i \f7Flag Runs: \f2%i", colorname(cn), cn->state.frags, cn->state.deaths, cn->state.teamkills/2, cn->state.flags);
+										sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
+									}
+								}
+								break;
+						}else if(text[6] == '\0') {
+							defformatstring(s)("\f0%s \n\f7Frags: \f0%i \f7Deaths: \f3%i \f7Teamkills: \f1%i \f7Flag Runs: \f2%i", colorname(ci), ci->state.frags, ci->state.deaths, ci->state.teamkills/2, ci->state.flags);
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
+							}
 							break;
 							
 						}else if(textcmd("getversion", text)){
