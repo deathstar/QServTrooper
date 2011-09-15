@@ -2003,7 +2003,7 @@ namespace server
 
     void noclients()
     {
-        //bannedips.shrink(0); //when the server is empty (noclients) do not clearbans
+        //bannedips.shrink(0); //delete banned IP's when server empties (disabled)
         aiman::clearai();
 		printf("\33[33mServer has emptied\33[0m\n");
     }
@@ -2057,7 +2057,7 @@ namespace server
             sendf(-1, 1, "ri2", N_CDIS, n);
             clients.removeobj(ci);
             aiman::removeai(ci);
-            //if(!numclients(-1, false, true)) noclients(); // bans clear when server empties
+            //if(!numclients(-1, false, true)) noclients(); //clears bans on empty (disabled) 
         }
         else connects.removeobj(ci);
     }
