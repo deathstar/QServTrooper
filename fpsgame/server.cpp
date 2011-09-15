@@ -2050,8 +2050,7 @@ namespace server
             if(ci->privilege) setmaster(ci, false);
             if(smode) smode->leavegame(ci, true);
             ci->state.timeplayed += lastmillis - ci->state.lasttimeplayed;
-			defformatstring(s)("%s disconnected", ci->name); //ties in with disconnected client message
-			puts(s);
+			out(ECHO_CONSOLE, "%s (%s) disconnected", ci->name, ci->ip);
 			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
             savescore(ci);
             sendf(-1, 1, "ri2", N_CDIS, n);
@@ -2302,12 +2301,11 @@ namespace server
                 sendinitclient(ci);
 
                 aiman::addclient(ci);
-
+				out(ECHO_CONSOLE, "%s (%s) connected", ci->name, ci->ip);
                 if(m_demo) setupdemoplayback();
 
-				//motd - Message of the Day
 				char *servername = serverdesc;
-                GeoIP * gi;
+                GeoIP *gi;
                 gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
@@ -2317,12 +2315,11 @@ namespace server
                 }else
                 {
                     defformatstring(b)("\f0%s \f7connected from \f2%s", colorname(ci), ip);
-                    irc.speak("%s (%s) has connected from %s", colorname(ci), ci->ip, ip);
+                    irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
                 defformatstring(l)("Welcome to %s \f7running \f4QServ\f7, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
-				printf("Connected: %s\n", ci->name);
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
             }
         }
