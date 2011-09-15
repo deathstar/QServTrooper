@@ -411,7 +411,7 @@ ENetSocket connectmaster()
     if(masteraddress.host == ENET_HOST_ANY)
     {
 #ifdef STANDALONE
-        printf("\33[33mEstablishing a connection to %s...\33[0m\n", mastername);
+        printf("\33[32mConnecting to %s...\33[0m\n", mastername);
 #endif
         masteraddress.port = masterport;
         if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
@@ -467,9 +467,9 @@ void processmasterinput()
         while(args < end && isspace(*args)) args++;
 
         if(!strncmp(input, "failreg", cmdlen))
-            conoutf(CON_ERROR, "registration to: %s failed: %s", mastername, args);
+            conoutf(CON_ERROR, "Master server registration to %s failed (%s)", mastername, args);
         else if(!strncmp(input, "succreg", cmdlen))
-        	conoutf("Established a connection and registered server to: %s", mastername);
+        	conoutf("Successfully registered to master server: %s", mastername);
         else server::processmasterinput(input, cmdlen, args);
 
         masterinpos = end - masterin.getbuf();
@@ -646,7 +646,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
 
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 
-		        printf("Incomming connection (%s)\n", c.hostname);
+		        //printf("Incomming connection (%s)\n", c.hostname);
                 int reason = server::clientconnect(c.num, c.peer->address.host, c.hostname);
                 if(!reason) nonlocalclients++;
                 else disconnect_client(c.num, reason);
@@ -663,7 +663,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
             {
                 client *c = (client *)event.peer->data;
                 if(!c) break;
-                printf("Client disconnected (%s)\n", c->hostname);
+                //printf("Client disconnected (%s)\n", c->hostname);
                 server::clientdisconnect(c->num);
                 nonlocalclients--;
                 c->type = ST_EMPTY;
