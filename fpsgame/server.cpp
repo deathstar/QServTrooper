@@ -426,16 +426,16 @@ namespace server
     int nextplayback = 0, demomillis = 0;
 	
 	SVAR(qservversion, "");
+	SVAR(swarewordface, "");
 	SVAR(botname, "");
 	SVAR(irc_operators, "");
 	SVAR(qserv_info, "");
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
     SVAR(adminpass, "");
-	SVAR(spreesuicidemsg, "was looking good until he killed himself");
-	SVAR(spreeendmsg, "'s killing spree was ended by");
-	VAR(minspreefrags, 2, 5, INT_MAX); // if the player had at least this many frags, the spree end message is announced
-
+	SVAR(spreesuicidemsg, "was fine until he killed himself");
+	SVAR(spreeendmsg, "'s killing spree was ceased by");
+	VAR(minspreefrags, 2, 5, INT_MAX); 
 	VAR(shotguninsta, 0, 0, 1);
 	VAR(teamkill_penalty, 0, 0, 1);
 	VAR(msg_to_console, 0, 0, 1);
@@ -553,7 +553,7 @@ namespace server
 		}
 		if(bad){
 			int n = rand() % 7 + 0;
-			defformatstring(d)("\f%i:[] \f0%s!", n, ci->name);
+			defformatstring(d)("\f%i%s \f0%s!", n, swarewordface, ci->name);
 			sendservmsg(d);
 			bad=false;
 		}
