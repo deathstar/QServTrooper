@@ -162,8 +162,10 @@ namespace server
             respawn();
         }
 
+
         void respawn()
         {
+			
             fpsstate::respawn();
             o = vec(-1e10f, -1e10f, -1e10f);
             lastdeath = 0;
@@ -425,15 +427,14 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 	
-	SVAR(qservversion, "");
+	SVAR(qservinfo, "");
 	SVAR(swarewordface, "");
 	SVAR(botname, "");
 	SVAR(irc_operators, "");
-	SVAR(qserv_info, "");
     SVAR(serverdesc, "");
     SVAR(serverpass, "");
     SVAR(adminpass, "");
-	SVAR(spreesuicidemsg, "was fine until he killed himself");
+	SVAR(spreesuicidemsg, "was doing fine until he killed himself");
 	SVAR(spreeendmsg, "'s killing spree was ceased by");
 	VAR(minspreefrags, 2, 5, INT_MAX); 
 	VAR(shotguninsta, 0, 0, 1);
@@ -564,9 +565,9 @@ namespace server
 	char *servername = serverdesc; //server description in server-init is name
 	char *passwrd = adminpass; 
 	
-	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
+	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour QServ server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
 	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
-	printf("\33[34mServer with name \"%s\" and admin password \"%s\" started on port %i \nCtrl-C to stop the server\33[0m\n\n", servername, passwrd, getvar("serverport"));
+	printf("\33[34mServer \"%s\" with admin password \"%s\" started on port %i \nCtrl-C to stop\33[0m\n\n", servername, passwrd, getvar("serverport"));
 	}
 
     void serverinit()
@@ -816,7 +817,7 @@ namespace server
         char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
         while(trim>timestr && isspace(*--trim)) *trim = '\0';
         formatstring(d.info)("%s: %s, %s, %.2f%s", timestr, modename(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-        defformatstring(msg)("Demo \"%s\" recorded", d.info);
+        defformatstring(msg)("Demo \"%s\" succesfully recorded", d.info);
         sendservmsg(msg);
         d.data = new uchar[len];
         d.len = len;
@@ -895,7 +896,7 @@ namespace server
 
         loopv(clients) sendf(clients[i]->clientnum, 1, "ri3", N_DEMOPLAYBACK, 0, clients[i]->clientnum);
 
-        sendservmsg("Demo finished playing");
+        sendservmsg("Demo has finished playing");
 
         loopv(clients) sendwelcome(clients[i]);
     }
@@ -1455,7 +1456,7 @@ namespace server
     {
 		out(ECHO_SERV, "Loaded map: \f1%s", s);
 		out(ECHO_CONSOLE, "Loaded map: %s", s);
-		out(ECHO_IRC, "Loaded map: %s", s);
+		out(ECHO_IRC, "Loaded map: \x02%s\x02", s);
 		
         stopdemo();
         pausegame(false);
@@ -1591,7 +1592,7 @@ namespace server
         }
         else
         {
-            defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2/mode map \f7to vote)", colorname(ci), modename(reqmode), map, map);
+            defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2\"/mode map\" \f7to vote)", colorname(ci), modename(reqmode), map, map);
             sendservmsg(msg);
 			out(ECHO_IRC, "%s votes for a %s on map %s", colorname(ci), modename(reqmode), map);
             checkvotes();
@@ -1617,8 +1618,6 @@ namespace server
         ci->state.frags += smode ? smode->fragvalue(ci, ci) : -1;
         ci->state.deaths++;
         sendf(-1, 1, "ri4", N_DIED, ci->clientnum, ci->clientnum, gs.frags);
-        //defformatstring(d)("\f0%s \f7was looking good until he killed himself", colorname(ci));
-		//sendservmsg(d);
         ci->position.setsize(0);
         if(smode) smode->died(ci, NULL);
         gs.state = CS_DEAD;
@@ -1634,6 +1633,7 @@ namespace server
 		int frags;
 		string msg1, msg2;
 	};
+	
 	vector <spreemsg> spreemessages;
 	ICOMMAND(addspreemsg, "iss", (int *frags, char *msg1, char *msg2), { spreemsg m; m.frags = *frags; copystring(m.msg1, msg1); copystring(m.msg2, msg2); spreemessages.add(m); });
 	struct multikillmsg {
@@ -1662,16 +1662,16 @@ namespace server
         {
             target->state.deaths++;
             if(isteam(actor->team, target->team))
-			            {
-			                actor->state.teamkills++;
-			                target->state.deaths++;
-							if(actor == target) {} //If the target kills himself, we don't echo anything
-							else {
-								if(getvar("teamkill_penalty")) {
-								if(actor->state.state==CS_ALIVE) { 
-									suicide(actor); 
-								    sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f1Notice: \f7You were suicided for fragging your teammate");}
-								}
+				{
+			    	actor->state.teamkills++;
+			        target->state.deaths++;
+					if(actor == target) {} //If the target kills himself, we don't echo anything
+					else {
+						if(getvar("teamkill_penalty")) {
+						if(actor->state.state==CS_ALIVE) { 
+							suicide(actor); 
+							sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f1Notice: \f7You were suicided for fragging your teammate");}
+						}
 			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 						    sendservmsg(msg);
 						    }
@@ -1687,7 +1687,7 @@ namespace server
                 actor->state.effectiveness += fragvalue*friends/float(max(enemies, 1));
             }
             sendf(-1, 1, "ri4", N_DIED, target->clientnum, actor->clientnum, actor->state.frags);
-            if(!firstblood && actor != target) { firstblood = true; out(ECHO_SERV, "\f0%s \f7scored \f6THE FIRST KILL!!!", colorname(actor)); }
+            if(!firstblood && actor != target) { firstblood = true; out(ECHO_SERV, "\f0%s \f7commited \f6THE FIRST SLAUGHTER!", colorname(actor)); }
 			if(actor != target) actor->state.spreefrags++;
 			if(target->state.spreefrags >= minspreefrags) {
 				if(actor == target)
@@ -1989,7 +1989,7 @@ namespace server
             {
                 clientinfo *ci = clients[j];
                 if(ci->state.state==CS_SPECTATOR || ci->state.aitype != AI_NONE || !ci->clientmap[0] || ci->mapcrc != info.crc || (req < 0 && ci->warned)) continue;
-                formatstring(msg)("\f3Warning: \f0%s \f7has modified map map: \f1\"%s\"", colorname(ci), smapname);
+                formatstring(msg)("\f3Warning: \f0%s \f7has modified map: \f1\"%s\"", colorname(ci), smapname);
                 sendf(req, 1, "ris", N_SERVMSG, msg);
                 if(req < 0) ci->warned = true;
             }
@@ -2256,7 +2256,7 @@ namespace server
         }
     }
 
-    void parsepacket(int sender, int chan, packetbuf &p)     // has to parse exactly each byte of the packet
+    void parsepacket(int sender, int chan, packetbuf &p) // has to parse exactly each byte of the packet
     {
         if(sender<0) return;
         char text[MAXTRANS];
@@ -2309,7 +2309,7 @@ namespace server
                 gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
-					defformatstring(b)("\f0%s \f7connected from \f2Unknown", colorname(ci));
+					defformatstring(b)("\f0%s \f7connected from \f3Unknown", colorname(ci));
 					server::sendservmsg(b);
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else
@@ -2318,6 +2318,7 @@ namespace server
                     irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
                 }
+				//Welcome message (motd)
                 defformatstring(l)("Welcome to %s \f7running \f4QServ\f7, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
@@ -2675,11 +2676,11 @@ namespace server
 							break;
 							
 						}else if(textcmd("getversion", text)){
-							defformatstring(s)("%s", qservversion);
+							defformatstring(s)("%s", qservinfo);
 							sendservmsg(s);
 							break;
 						}else if(textcmd("getversion", text) && ci->privilege){
-							defformatstring(s)("%s", qservversion);
+							defformatstring(s)("%s", qservinfo);
 							sendservmsg(s);
 							break;
 							
@@ -2900,7 +2901,7 @@ namespace server
 					       break;
 
 						}else if(textcmd("info", text)){
-						   char *s = qserv_info;
+						   char *s = qservinfo;
 						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
 						   break;
 

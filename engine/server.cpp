@@ -322,7 +322,7 @@ void disconnect_client(int n, int reason)
     defformatstring(s)("\f0%s \f7disconnected: \f3%s\n", clients[n]->hostname, disc_reasons[reason]);
 	server::sendservmsg(s);
 	printf("client (%s) disconnected because: %s\n", clients[n]->hostname, disc_reasons[reason]);
-	irc.speak("%s disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
+	irc.speak("(%s) disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
 }
 
 void kicknonlocalclients(int reason)
