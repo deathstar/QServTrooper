@@ -438,8 +438,8 @@ namespace server
 	SVAR(spreeendmsg, "'s killing spree was ceased by");
 	VAR(minspreefrags, 2, 5, INT_MAX); 
 	VAR(shotguninsta, 0, 0, 1);
-	VAR(teamkill_penalty, 0, 0, 1);
-	VAR(msg_to_console, 0, 0, 1);
+	VAR(tkpenalty, 0, 0, 1);
+	VAR(chattoconsole, 0, 0, 1);
 	
     VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
@@ -567,7 +567,7 @@ namespace server
 	
 	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour QServ server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
 	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
-	printf("\33[34mServer \"%s\" with admin password \"%s\" started on port %i \nCtrl-C to stop\33[0m\n\n", servername, passwrd, getvar("serverport"));
+	printf("\33[34m\"%s\" with admin password \"%s\" started on port %i \nCtrl-C to stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
 	}
 
     void serverinit()
@@ -1665,17 +1665,18 @@ namespace server
 				{
 			    	actor->state.teamkills++;
 			        target->state.deaths++;
-					if(actor == target) {} //If the target kills himself, we don't echo anything
+					if(actor == target) {} 
 					else {
-						if(getvar("teamkill_penalty")) {
-						if(actor->state.state==CS_ALIVE) { 
-							suicide(actor); 
-							sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f1Notice: \f7You were suicided for fragging your teammate");}
+			        	defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
+						sendservmsg(msg);
+							if(getvar("tkpenalty")) { 
+								if(actor->state.state==CS_ALIVE) {
+									suicide(actor); 
+									sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f1Notice: \f7You were suicided for fragging your teammate");}
+          						}
+							}   
 						}
-			                defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
-						    sendservmsg(msg);
-						    }
-			            }
+					}
             if(actor!=target && isteam(actor->team, target->team)) actor->state.teamkills++;
             int fragvalue = smode ? smode->fragvalue(target, actor) : (target==actor || isteam(target->team, actor->team) ? -1 : 1);
             actor->state.frags += fragvalue;
@@ -1708,8 +1709,6 @@ namespace server
             // don't issue respawn yet until DEATHMILLIS has elapsed
             // ts.respawn();
         }
-    }
-
  	void explodeevent::process(clientinfo *ci)
     {
         gamestate &gs = ci->state;
@@ -2047,16 +2046,17 @@ namespace server
 
         if(ci->connected)
         {
+			clients.removeobj(ci);
+			aiman::removeai(ci);
+			if(smode) smode->leavegame(ci, true);
             if(ci->privilege) setmaster(ci, false);
-            if(smode) smode->leavegame(ci, true);
-            ci->state.timeplayed += lastmillis - ci->state.lasttimeplayed;
-			out(ECHO_CONSOLE, "%s (%s) disconnected", ci->name, ci->ip);
+            ci->state.timeplayed+=lastmillis-ci->state.lasttimeplayed;
+			out(ECHO_CONSOLE, "%s (%s) disconnected", ci->name, ci->ip); 
 			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
-            savescore(ci);
+			savescore(ci);
             sendf(-1, 1, "ri2", N_CDIS, n);
-            clients.removeobj(ci);
-            aiman::removeai(ci);
-            //if(!numclients(-1, false, true)) noclients(); //clears bans on empty (disabled) 
+			//clearbans when server empties disabled...
+            //if(!numclients(-1, false, true)) noclients(); 
         }
         else connects.removeobj(ci);
     }
@@ -2070,15 +2070,15 @@ namespace server
 
     vector<gbaninfo> gbans;
 
-    void cleargbans()
-    {
-        gbans.shrink(0);
-    }
-
-    bool checkgban(uint ip)
+	bool checkgban(uint ip)
     {
         loopv(gbans) if((ip & gbans[i].mask) == gbans[i].ip) return true;
         return false;
+    }
+
+    void cleargbans()
+    {
+        gbans.shrink(0);
     }
 
     void addgban(const char *name)
@@ -2211,8 +2211,8 @@ namespace server
     {
         if(!m_edit || len > 1024*1024) return;
         clientinfo *ci = getinfo(sender);
+		if(mapdata) DELETEP(mapdata);
         if(ci->state.state==CS_SPECTATOR && !ci->privilege && !ci->local) return;
-        if(mapdata) DELETEP(mapdata);
         if(!len) return;
         mapdata = opentempfile("mapdata", "w+b");
         if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to open temporary file for map"); return; }
@@ -2256,7 +2256,8 @@ namespace server
         }
     }
 
-    void parsepacket(int sender, int chan, packetbuf &p) // has to parse exactly each byte of the packet
+	//Parses exactly each byte of the packet
+    void parsepacket(int sender, int chan, packetbuf &p) 
     {
         if(sender<0) return;
         char text[MAXTRANS];
@@ -2265,14 +2266,13 @@ namespace server
         if(ci && !ci->connected)
         {
             if(chan==0) return;
-            else if(chan!=1 || getint(p)!=N_CONNECT) { disconnect_client(sender, DISC_TAGT); return; }
+            else if(chan!=1 || getint(p)!=N_CONNECT) {disconnect_client(sender, DISC_TAGT); return;}
             else
             {
                 getstring(text, p);
                 filtertext(text, text, false, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unnamed");
                 copystring(ci->name, text, MAXNAMELEN+1);
-
                 getstring(text, p);
                 int disc = allowconnect(ci, text);
                 if(disc)
@@ -2280,47 +2280,39 @@ namespace server
                     disconnect_client(sender, disc);
                     return;
                 }
-
+				
+				//Client connect
+				clients.add(ci);
+				ci->connected = true;
+				connects.removeobj(ci);
                 ci->playermodel = getint(p);
-
-                if(m_demo) enddemoplayback();
-
-                connects.removeobj(ci);
-                clients.add(ci);
-
-                ci->connected = true;
+				if(mastermode>=MM_LOCKED) ci->state.state = CS_SPECTATOR;
+				if(m_demo) enddemoplayback();
+				ci->state.lasttimeplayed = lastmillis;
                 ci->needclipboard = totalmillis;
-                if(mastermode>=MM_LOCKED) ci->state.state = CS_SPECTATOR;
-                ci->state.lasttimeplayed = lastmillis;
-
                 const char *worst = m_teammode ? chooseworstteam(NULL, ci) : NULL;
                 copystring(ci->team, worst ? worst : "good", MAXTEAMLEN+1);
-
-                sendwelcome(ci);
                 if(restorescore(ci)) sendresume(ci);
+				aiman::addclient(ci);
                 sendinitclient(ci);
-
-                aiman::addclient(ci);
 				out(ECHO_CONSOLE, "%s (%s) connected", ci->name, ci->ip);
-                if(m_demo) setupdemoplayback();
-
+				sendwelcome(ci);
+				GeoIP *gi;
+				gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
 				char *servername = serverdesc;
-                GeoIP *gi;
-                gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
-					defformatstring(b)("\f0%s \f7connected from \f3Unknown", colorname(ci));
+					defformatstring(b)("\f0%s \f7(\f4%s\f7) \f7connected from \f2Unknown", colorname(ci), ci->ip);
 					server::sendservmsg(b);
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
-                }else
-                {
+                }else{
                     defformatstring(b)("\f0%s \f7connected from \f2%s", colorname(ci), ip);
-                    irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
                     server::sendservmsg(b);
+					irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
                 }
-				//Welcome message (motd)
-                defformatstring(l)("Welcome to %s \f7running \f4QServ\f7, \f0%s\f7. Type \f1\"#help\" \f7for a list of commands", servername, colorname(ci));
+				defformatstring(l)("Welcome to %s \f7running \f4QServ \f3Viper\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands; enjoy your stay.", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
+				if(m_demo) setupdemoplayback();
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
             }
         }
@@ -2329,7 +2321,6 @@ namespace server
             receivefile(sender, p.buf, p.maxlen);
             return;
         }
-
         if(p.packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
         #define QUEUE_AI clientinfo *cm = cq;
         #define QUEUE_MSG { if(cm && (!cm->local || demorecord || hasnonlocalclients())) while(curmsg<p.length()) cm->messages.add(p.buf[curmsg++]); }
@@ -2505,6 +2496,7 @@ namespace server
                 cq->state.state = CS_ALIVE;
                 cq->state.gunselect = gunselect;
                 cq->exceeded = 0;
+				out(ECHO_CONSOLE, "%s spawned", colorname(cq));
                 if(smode) smode->spawned(cq);
                 QUEUE_AI;
                 QUEUE_BUF({
@@ -2518,6 +2510,7 @@ namespace server
             {
                 if(cq) cq->addevent(new suicideevent);
                 luaCallback(LUAEVENT_SUICIDE, ci->clientnum);
+				out(ECHO_CONSOLE, "%s suicided", colorname(ci));
                 break;
             }
 
@@ -2586,10 +2579,10 @@ namespace server
             {
                 getstring(text, p);
                 filtertext(text, text);
-                luaCallback(LUAEVENT_TEXT, ci->clientnum, 1, "s", text);
+				luaCallback(LUAEVENT_TEXT, ci->clientnum, 1, "s", text);
+				if(getvar("chattoconsole")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}
                 if(ci)
                 {
-					if(getvar("msg_to_console")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}
                     if(text[0] == '#' || text[0] == '@') {
 						char *c = text;
 						while(*c && isspace(*c)) c++;
@@ -2835,7 +2828,7 @@ namespace server
 
 						}else if(textcmd("uptime", text)){
 							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
-							defformatstring(f)("Server Uptime: \f2%d \f7seconds", (gamemillis/1000)+servuptime);
+							defformatstring(f)("Server Uptime: \f2%d \f7minutes", (gamemillis/1000)+servuptime/60/1);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
 
