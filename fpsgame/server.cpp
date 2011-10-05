@@ -378,22 +378,22 @@ namespace server
 
     #define MM_MODE 0xF
     #define MM_AUTOAPPROVE 0x1000
-    #define MM_PRIVSERV (MM_MODE | MM_AUTOAPPROVE)
     #define MM_PUBSERV ((1<<MM_OPEN) | (1<<MM_VETO))
-    #define MM_COOPSERV (MM_AUTOAPPROVE | MM_PUBSERV | (1<<MM_LOCKED))
+	#define MM_PRIVSERV (MM_MODE | MM_AUTOAPPROVE)
+	#define MM_COOPSERV (MM_AUTOAPPROVE | MM_PUBSERV | (1<<MM_LOCKED))
 
-    bool notgotitems = true;        // true when map has changed and waiting for clients to send item
+    bool notgotitems = true; //True when map has changed and waiting for clients to send item
     int gamemode = 0;
     int gamemillis = 0, gamelimit = 0, nextexceeded = 0;
     bool gamepaused = false;
 
-    string smapname = "";
+	string smapname = "";
+	enet_uint32 lastsend = 0;
+	stream *mapdata = NULL;
+	int mastermode = MM_OPEN, mastermask = MM_PRIVSERV;
+	bool mapreload = false;
+	int currentmaster = -1;
     int interm = 0;
-    bool mapreload = false;
-    enet_uint32 lastsend = 0;
-    int mastermode = MM_OPEN, mastermask = MM_PRIVSERV;
-    int currentmaster = -1;
-    stream *mapdata = NULL;
 
     vector<uint> allowedips;
     vector<ban> bannedips;
@@ -402,7 +402,7 @@ namespace server
     bool reliablemessages = false;
     void clearbans()
     {
-        irc.speak("All bans cleared");
+        irc.speak("All server bans cleared");
         bannedips.shrink(0);
     }
     void banPlayer(int i)
@@ -502,7 +502,6 @@ namespace server
     void resetitems()
     {
         sents.shrink(0);
-        //cps.reset();
     }
 
     int getmastercn()
@@ -528,7 +527,6 @@ namespace server
         }
         return false;
     }
-
 	string blkmsg[3] = {"fuck", "shit", "cunt"};
 	char textcmd(const char *a, const char *text){
 		for (int b=0; b<strlen(a); b++) {
@@ -554,7 +552,7 @@ namespace server
 		}
 		if(bad){
 			int n = rand() % 7 + 0;
-			defformatstring(d)("\f%i%s \f0%s!", n, swarewordface, ci->name);
+			defformatstring(d)("\f%i%s \f0%s!", n, swarewordface, ci->name); //"\f1%i" sets the color randomly: int n, %s echos name->person who swares
 			sendservmsg(d);
 			bad=false;
 		}
@@ -896,7 +894,7 @@ namespace server
 
         loopv(clients) sendf(clients[i]->clientnum, 1, "ri3", N_DEMOPLAYBACK, 0, clients[i]->clientnum);
 
-        sendservmsg("Demo has finished playing");
+        sendservmsg("Demo has finished playing...");
 
         loopv(clients) sendwelcome(clients[i]);
     }
@@ -971,7 +969,6 @@ namespace server
             lilswap(&nextplayback, 1);
         }
     }
-
     void stopdemo()
     {
         if(m_demo) enddemoplayback();
@@ -1027,7 +1024,7 @@ namespace server
             if(haspass) ci->privilege = PRIV_ADMIN;
             else if(!authname && !(mastermask&MM_AUTOAPPROVE) && !ci->privilege && !ci->local)
             {
-                sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Master is currently disabled");
+                sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Master is currently disabled (use admin to enable)");
                 return;
             }
             else
@@ -1050,7 +1047,7 @@ namespace server
         allowedips.shrink(0);
         string msg;
 		string msg_irc;
-        if(val && authname) formatstring(msg)("\f0%s \f7claimed \f1%s \f7as '\fs\f5%s\fr'", colorname(ci), name, authname);
+        if(val && authname) formatstring(msg)("\f0%s \f7claimed \f1%s \f7as '\fs\f5%s\fr'", colorname(ci), name, authname); //Claim auth
         else formatstring(msg)("\f0%s \f7%s \f1%s", colorname(ci), val ? "claimed" : "relinquished", name);
         sendservmsg(msg);
 		formatstring(msg_irc)("%s %s %s", colorname(ci), val ? "claimed" : "relinquished", name);
@@ -1331,8 +1328,8 @@ namespace server
     int welcomepacket(packetbuf &p, clientinfo *ci)
     {
         int hasmap = (m_edit && (clients.length()>1 || (ci && ci->local))) || (smapname[0] && (gamemillis<gamelimit || (ci && ci->state.state==CS_SPECTATOR && !ci->privilege && !ci->local) || numclients(ci ? ci->clientnum : -1, true, true, true)));
-        putint(p, N_WELCOME);
         putint(p, hasmap);
+		putint(p, N_WELCOME);
         if(hasmap)
         {
             putint(p, N_MAPCHANGE);
@@ -1451,6 +1448,7 @@ namespace server
         putinitclient(ci, p);
         sendpacket(-1, 1, p.finalize(), ci->clientnum);
     }
+
     int servuptime = 0;
     void changemap(const char *s, int mode)
     {
@@ -1458,22 +1456,21 @@ namespace server
 		out(ECHO_CONSOLE, "Loaded map: %s", s);
 		out(ECHO_IRC, "Loaded map: \x02%s\x02", s);
 		
-        stopdemo();
+		aiman::clearai();
+		scores.shrink(0);
+		gamemillis = 0;
+		stopdemo();
         pausegame(false);
-        if(smode) smode->reset(false);
-        aiman::clearai();
-
+		resetitems();
+		if(smode) smode->reset(false);
+		gamemode = mode;
+		gamelimit = (m_overtime ? 15 : 10)*60000;
         mapreload = false;
-        gamemode = mode;
 	    servuptime=(gamemillis/1000)+servuptime;
-        gamemillis = 0;
-        gamelimit = (m_overtime ? 15 : 10)*60000;
+		copystring(smapname, s);
         interm = 0;
+		notgotitems = true;
         nextexceeded = 0;
-        copystring(smapname, s);
-        resetitems();
-        notgotitems = true;
-        scores.shrink(0);
         loopv(clients)
         {
             clientinfo *ci = clients[i];
@@ -1481,9 +1478,7 @@ namespace server
         }
 
         if(!m_mp(gamemode)) kicknonlocalclients(DISC_PRIVATE);
-
         if(m_teammode) autoteam();
-
         if(m_capture) smode = &capturemode;
         else if(m_ctf) smode = &ctfmode;
         else smode = NULL;
@@ -1568,8 +1563,8 @@ namespace server
             defformatstring(msg)("Host forced \f2%s \f7on map \f1%s", modename(mode), map);
             sendservmsg(msg);
         }
-        sendf(-1, 1, "risii", N_MAPCHANGE, map, mode, 1);
-        changemap(map, mode);
+		sendf(-1, 1, "risii", N_MAPCHANGE, map, mode, 1);
+		changemap(map, mode);
     }
 
     void vote(char *map, int reqmode, int sender)
@@ -1592,10 +1587,10 @@ namespace server
         }
         else
         {
+			checkvotes();
             defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2\"/mode map\" \f7to vote)", colorname(ci), modename(reqmode), map, map);
             sendservmsg(msg);
 			out(ECHO_IRC, "%s votes for a %s on map %s", colorname(ci), modename(reqmode), map);
-            checkvotes();
         }
     }
 
@@ -1609,7 +1604,7 @@ namespace server
         }
     }
 
-    void startintermission() { gamelimit = min(gamelimit, gamemillis); checkintermission(); }
+    void startintermission() {gamelimit = min(gamelimit, gamemillis); checkintermission(); }
 
 	 void suicide(clientinfo *ci)
     {
@@ -1629,17 +1624,15 @@ namespace server
         suicide(ci);
     }
 
-		struct spreemsg {
-		int frags;
-		string msg1, msg2;
+	struct spreemsg {
+	int frags;
+	string msg1, msg2;
 	};
-	
 	vector <spreemsg> spreemessages;
 	ICOMMAND(addspreemsg, "iss", (int *frags, char *msg1, char *msg2), { spreemsg m; m.frags = *frags; copystring(m.msg1, msg1); copystring(m.msg2, msg2); spreemessages.add(m); });
 	struct multikillmsg {
 		int frags;
-		string msg;
-	};
+		string msg; };
 	vector <multikillmsg> multikillmessages;
 	SVAR(defmultikillmsg, "MULTI KILL"); // this is the default message for multikills that don't have a string. it is followed by the number of frags in braces
 	VAR(minmultikill, 2, 2, INT_MAX); // minimum number of kills for a multi kill
