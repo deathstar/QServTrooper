@@ -2742,18 +2742,18 @@ namespace server
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 							break;
 
-						}else if(textcmd("ban", text) && ci->privilege == PRIV_ADMIN) {
+					}else if(textcmd("ban", text) && ci->privilege == PRIV_ADMIN) {
 							if(text[4] == ' ') {
 								int v = text[5] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
 								if (cn->connected){
-									allowedips.removeobj(b.ip);
 									ban &b = bannedips.add();
-									disconnect_client(cn->clientnum, DISC_BANNED);
 									b.ip = getclientip(cn->clientnum);
 									b.time = gamemillis;
+									allowedips.removeobj(b.ip);
+									disconnect_client(cn->clientnum, DISC_BANNED);
 								break;
-								}
+							  }
 						}else if(text[4] == '\0') {
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#ban (cn)");
 							break;
