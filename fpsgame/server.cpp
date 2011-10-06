@@ -2217,7 +2217,7 @@ namespace server
         mapdata = opentempfile("mapdata", "w+b");
         if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to open temporary file for map"); return; }
         mapdata->write(data, len);
-        defformatstring(msg)("\f0%s \f7uploaded a map, type \f2\"/getmap\" \f7to recieve it", colorname(ci));
+        defformatstring(msg)("\f0%s \f7uploaded a map to the server, type \f2\"/getmap\" \f7to recieve it", colorname(ci));
         sendservmsg(msg);
     }
 
@@ -2294,15 +2294,15 @@ namespace server
                 copystring(ci->team, worst ? worst : "good", MAXTEAMLEN+1);
                 if(restorescore(ci)) sendresume(ci);
 				aiman::addclient(ci);
+				sendwelcome(ci);
                 sendinitclient(ci);
 				out(ECHO_CONSOLE, "%s (%s) connected", ci->name, ci->ip);
-				sendwelcome(ci);
 				GeoIP *gi;
 				gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
 				char *servername = serverdesc;
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
-					defformatstring(b)("\f0%s \f7(\f4%s\f7) \f7connected from \f2Unknown", colorname(ci), ci->ip);
+					defformatstring(b)("\f0%s's \f7(\f4%s\f7) \f7location is \f2Unidentifable", colorname(ci), ci->ip);
 					server::sendservmsg(b);
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else{
@@ -2310,7 +2310,7 @@ namespace server
                     server::sendservmsg(b);
 					irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
                 }
-				defformatstring(l)("Welcome to %s \f7running \f4QServ \f3Viper\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands; enjoy your stay.", servername, colorname(ci));
+				defformatstring(l)("Welcome to %s \f7running \f4QServ\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands and enjoy your stay.", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				if(m_demo) setupdemoplayback();
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
@@ -2684,7 +2684,7 @@ namespace server
 							break;
 						}else if(textcmd("pausegame 0", text) && ci->privilege){
 							pausegame(false);
-							defformatstring(s)("\f0%s \f0resumed \f7the game", colorname(ci));
+							defformatstring(s)("\f0%s \f2resumed \f7the game", colorname(ci));
 							sendservmsg(s);
 							break;
 						}else if(textcmd("pausegame 1", text)){
@@ -2698,7 +2698,7 @@ namespace server
 							break;
 
 					 	}else if(textcmd("callops", text)){
-							defformatstring(s)("You have called operators %s, if they are available they will respond shortly", irc_operators);
+							defformatstring(s)("You have called operators %s, they have been called and will respond promptly if available", irc_operators);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
 							out(ECHO_IRC, "Attention operators %s: %s needs assistance", irc_operators, colorname(ci));
 							break;
@@ -2747,11 +2747,11 @@ namespace server
 								int v = text[5] - '0';
 								clientinfo *cn = (clientinfo *)getclientinfo(v);
 								if (cn->connected){
-									ban &b = bannedips.add();
-									b.time = gamemillis;
-									b.ip = getclientip(cn->clientnum);
 									allowedips.removeobj(b.ip);
+									ban &b = bannedips.add();
 									disconnect_client(cn->clientnum, DISC_BANNED);
+									b.ip = getclientip(cn->clientnum);
+									b.time = gamemillis;
 								break;
 								}
 						}else if(text[4] == '\0') {
@@ -2810,7 +2810,7 @@ namespace server
 
 					    }else if(textcmd("allowmaster", text) && ci->privilege == PRIV_ADMIN){
 							mastermask = MM_PRIVSERV;
-							out(ECHO_SERV, "master has been \f0enabled");
+							out(ECHO_SERV, "Master has been \f0enabled");
 							out(ECHO_IRC, "Master has been enabled");
 							break;
 						}else if(textcmd("allowmaster", text)){
@@ -2819,7 +2819,7 @@ namespace server
 
 						}else if(textcmd("disallowmaster", text) && ci->privilege == PRIV_ADMIN){
 							mastermask = !MM_AUTOAPPROVE;
-							out(ECHO_SERV, "master has been \f3disabled");
+							out(ECHO_SERV, "Master has been \f3disabled");
 							out(ECHO_IRC, "Master has been disabled");
 							break;
 						}else if(textcmd("disallowmaster", text)){
@@ -2828,7 +2828,7 @@ namespace server
 
 						}else if(textcmd("uptime", text)){
 							ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
-							defformatstring(f)("Server Uptime: \f2%d \f7minutes", (gamemillis/1000)+servuptime/60/1);
+							defformatstring(f)("Server has been running for \f2%d \f7seconds", (gamemillis/1000)+servuptime/1000);
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
                           	break;
 
@@ -2925,7 +2925,7 @@ namespace server
 						   break;
 
 					   }else{
-						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Unknown command");
+						   sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Command not found");
 						   break;
 						}
                     }
