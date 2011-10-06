@@ -2581,60 +2581,60 @@ namespace server
                 filtertext(text, text);
 				luaCallback(LUAEVENT_TEXT, ci->clientnum, 1, "s", text);
 				if(getvar("chattoconsole")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}
-                if(ci)
-                {
-                    if(text[0] == '#' || text[0] == '@') {
-						char *c = text;
-						while(*c && isspace(*c)) c++;
+                	if(ci)
+                	{
+                    	if(text[0] == '#' || text[0] == '@') {
+							char *c = text;
+							while(*c && isspace(*c)) c++;
 							
 							//Admin Commands
 							if(textcmd("help", text) && ci->privilege) {
-							if(textcmd("stats", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stats (cn)\nDescription: get the stats of a client");break;}
-							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
-							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
-							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: send a private message to another player");break;}
-					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: stop the server");break;}
-					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: get the current QServ version");break;}
-							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
-							if(textcmd("killall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#killall\nDescription: frag everyone on the server");break;}
-						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
-							if(textcmd("allowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#allowmaster\nDescription: allow the \"/setmaster 1\" command");break;}
-							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: disallow the \"/setmaster 1\" command");break;}
-							if(textcmd("givemaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#givemaster (cn)\nDescription: give master to another client");break;}
-							if(textcmd("ip", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ip (cn)\nDescription: get the ip of another client");break;}
-							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: temporarily kick another client (they can reconnect immediately)");break;}
-							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: ban another client permanently");break;}
-							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
-							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
-							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
-							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: call IRC operators");break;}
-							if(textcmd("pausegame", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pausegame 1/0\nDescription: pause the current game");break;}
-							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: get this server's QServ version");break;}
+							if(textcmd("stats", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stats (cn)\nDescription: View the current stats of a client");break;}
+							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: Send your name and message to all other clients");break;}
+							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: Echo your message to everyone on the server");break;}
+							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: Send a private message to another client");break;}
+					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: Stop the server");break;}
+					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: View the current server info");break;}
+							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: Display the servers uptime");break;}
+							if(textcmd("killall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#killall\nDescription: Frag everyone on the server");break;}
+						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: Force an intermission");break;}
+							if(textcmd("allowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#allowmaster\nDescription: Allow the \"/setmaster 1\" command");break;}
+							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: Disallow the \"/setmaster 1\" command");break;}
+							if(textcmd("givemaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#givemaster (cn)\nDescription: Give master to another client");break;}
+							if(textcmd("ip", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ip (cn)\nDescription: Get the IP of another client");break;}
+							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: Temporarily kick another client (reconnect possible immediatly)");break;}
+							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: Ban a client permanently");break;}
+							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: Suicide another client");break;}
+							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: Claim invisible admin");break;}
+							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: Clear all server bans");break;}
+							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: Call all available IRC operators");break;}
+							if(textcmd("pausegame", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pausegame 1/0\nDescription: Pause the current game");break;}
+							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: Get this server's QServ version");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Privileged Commands: \f7me, say, pm, help, info, uptime, getversion, frag, killall, callops, forceintermission, allow/disallowmaster, ip, invadmin, kick, ban, clearb, stopserver, pausegame\nType \f2#help (command) \f7for information on a command");
 							break;
 						
 							//Public commands
 							} else if(textcmd("help", text)) {
-							if(textcmd("stats", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stats (cn)\nDescription: get the stats of a client");break;}
-							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: echo your name and your text to all the players on the server");break;}
-							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: echo your message to everyone on the server");break;}
-							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: send a private message to another player");break;}
-					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: stop the server");break;}
-					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: get the current QServ version");break;}
-							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: display the servers uptime");break;}
-							if(textcmd("killall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#killall\nDescription: frag everyone on the server");break;}
-						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: force an intermission");break;}
+							if(textcmd("stats", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stats (cn)\nDescription: View the current stats of a client");break;}
+							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: Send your name and message to all other clients");break;}
+							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: Echo your message to everyone on the server");break;}
+							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: Send a private message to another client");break;}
+					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: Stop the server");break;}
+					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: View the current server info");break;}
+							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: Display the servers uptime");break;}
+							if(textcmd("killall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#killall\nDescription: Frag everyone on the server");break;}
+						    if(textcmd("forceintermission", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#forceintermission\nDescription: Force an intermission");break;}
 							if(textcmd("allowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#allowmaster\nDescription: allow the \"/setmaster 1\" command");break;}
-							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: disallow the \"/setmaster 1\" command");break;}
-							if(textcmd("givemaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#givemaster (cn)\nDescription: give master to another client");break;}
-							if(textcmd("ip", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ip (cn)\nDescription: get the ip of another client");break;}
-							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: temporarily kick another client (they can reconnect immediately)");break;}
-							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: ban another client permanently");break;}
-							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: suicide another client");break;}
-							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: claim invisible admin");break;}
-							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: clear all bans");break;}
-							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: call IRC operators");break;}
-							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: get this server's version number and name");break;}
+							if(textcmd("disallowmaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#disallowmaster\nDescription: Disallow the \"/setmaster 1\" command");break;}
+							if(textcmd("givemaster", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#givemaster (cn)\nDescription: Give master to another client");break;}
+							if(textcmd("ip", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ip (cn)\nDescription: Get the IP of another client");break;}
+							if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#kick (cn)\nDescription: Temporarily kick another client (reconnect possible immediatly)");break;}
+							if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: Ban a client permanently");break;}
+							if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: Suicide another client");break;}
+							if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: Claim invisible admin");break;}
+							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: Clear all server bans");break;}
+							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: Call all available IRC operators");break;}
+							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: Get this server's version number and name");break;}
 							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Public Commands: \f7me, say, pm, help, info, uptime, getversion and callops\nType \f2#help (command) \f7for information on a command");
 							break;
 							
