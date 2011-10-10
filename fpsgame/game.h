@@ -444,14 +444,25 @@ struct fpsstate
             if(getvar("shotguninsta")) {
 				gunselect = GUN_SG;
 				ammo[GUN_SG] = 100;
-			}
-			else {
+			} else if(getvar("rocketinsta")) {
+				gunselect = GUN_RL;
+				ammo[GUN_RL] = 100;
+			} else if(getvar("chainguninsta")) {
+				gunselect = GUN_CG;
+				ammo[GUN_CG] = 100;
+			} else if(getvar("chainsawinsta")) {
+				gunselect = GUN_FIST;
+				ammo[GUN_FIST] = 2;
+			} else if(getvar("grenadeinsta")) {
+				gunselect = GUN_GL;
+				ammo[GUN_GL] = 100;
+			} else {
 				gunselect = GUN_RIFLE;
 				ammo[GUN_RIFLE] = 100;
 			}
-        }
-        else if(m_regencapture)
-        {
+		}
+			else if(m_regencapture)
+			{
             armourtype = A_GREEN;
             armour = 0;
             gunselect = GUN_PISTOL;

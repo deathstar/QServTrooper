@@ -427,20 +427,23 @@ namespace server
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
 	
-	SVAR(qservinfo, "");
+	SVAR(serverdesc, "");
+	SVAR(adminpass, "");
 	SVAR(swarewordface, "");
 	SVAR(botname, "");
+	SVAR(qservinfo, "");
+	VAR(chattoconsole, 0, 0, 1);
+	VAR(tkpenalty, 0, 0, 1);
 	SVAR(irc_operators, "");
-    SVAR(serverdesc, "");
-    SVAR(serverpass, "");
-    SVAR(adminpass, "");
+	SVAR(serverpass, "");
 	SVAR(spreesuicidemsg, "was doing fine until he killed himself");
 	SVAR(spreeendmsg, "'s killing spree was ceased by");
 	VAR(minspreefrags, 2, 5, INT_MAX); 
 	VAR(shotguninsta, 0, 0, 1);
-	VAR(tkpenalty, 0, 0, 1);
-	VAR(chattoconsole, 0, 0, 1);
-	
+	VAR(rocketinsta, 0, 0, 1);
+	VAR(chainguninsta, 0, 0, 1);
+	VAR(chainsawinsta, 0, 0, 1);
+	VAR(grenadeinsta, 0, 0, 1);
     VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
