@@ -3060,7 +3060,7 @@ namespace server
 
             case N_CLIENTPING:
             {
-				if((ci->ping > 425) &&  !ci->pingwarned) {defformatstring(s)("\f6Attention: \f0%s\f7, please lower your ping; it is higher than this servers maximum ping limit (425)", colorname(ci)); sendservmsg(s); ci->pingwarned = true;}
+				if((ci->ping > 500) &&  !ci->pingwarned) {defformatstring(s)("\f6Attention: \f0%s\f7, please lower your ping; it is higher than this servers maximum ping limit (500)", colorname(ci)); sendservmsg(s); ci->pingwarned = true;}
                 int ping = getint(p);
                 if(ci)
                 {
