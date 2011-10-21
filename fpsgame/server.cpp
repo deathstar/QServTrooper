@@ -147,25 +147,21 @@ namespace server
         }
 
         void reset()
-        {
+        {  //QServ: reset rockets/health and respawn before clearing int's
             if(state!=CS_SPECTATOR) state = editstate = CS_DEAD;
-            maxhealth = 100;
-            rockets.reset();
+			respawn();
+ 			rockets.reset();
             grenades.reset();
-
-            timeplayed = 0;
-            effectiveness = 0;
-            frags = flags = deaths = teamkills = shotdamage = damage = 0;
-			lastfragmillis = 0;
+			maxhealth = 100;
+			frags = flags = deaths = teamkills = shotdamage = damage = 0;
+			timeplayed = 0;
 			multifrags = spreefrags = 0;
-
-            respawn();
+			effectiveness = 0;
+			lastfragmillis = 0;
         }
 
-
         void respawn()
-        {
-			
+        {	
             fpsstate::respawn();
             o = vec(-1e10f, -1e10f, -1e10f);
             lastdeath = 0;
@@ -224,10 +220,10 @@ namespace server
         int clientnum, ownernum, connectmillis, sessionid, overflow, connectedmillis;
 		char *ip; //ipstring
         string name, team, mapvote;
+		int privilege;
+		bool connected, local, timesync;
         int playermodel;
-        int modevote;
-        int privilege;
-        bool connected, local, timesync;
+  		int modevote;
         int gameoffset, lastevent, pushed, exceeded;
         gamestate state;
         vector<gameevent *> events;
@@ -256,16 +252,15 @@ namespace server
         {
             PUSHMILLIS = 2500
         };
+		 bool checkpushed(int millis, int range)
+        {
+            return millis >= pushed - range && millis <= pushed + range;
+        }
 
         int calcpushrange()
         {
             ENetPeer *peer = getclientpeer(ownernum);
             return PUSHMILLIS + (peer ? peer->roundTripTime + peer->roundTripTimeVariance : ENET_PEER_DEFAULT_ROUND_TRIP_TIME);
-        }
-
-        bool checkpushed(int millis, int range)
-        {
-            return millis >= pushed - range && millis <= pushed + range;
         }
 
         void scheduleexceeded()
@@ -274,6 +269,12 @@ namespace server
             int range = calcpushrange();
             if(!nextexceeded || exceeded + range < nextexceeded) nextexceeded = exceeded + range;
         }
+		
+		void setpushed()
+        {
+            pushed = max(pushed, gamemillis);
+            if(exceeded && checkpushed(exceeded, calcpushrange())) exceeded = 0;
+        }
 
         void setexceeded()
         {
@@ -281,15 +282,26 @@ namespace server
             scheduleexceeded();
         }
 
-        void setpushed()
-        {
-            pushed = max(pushed, gamemillis);
-            if(exceeded && checkpushed(exceeded, calcpushrange())) exceeded = 0;
-        }
 
         bool checkexceeded()
         {
             return state.state==CS_ALIVE && exceeded && gamemillis > exceeded + calcpushrange();
+        }
+		
+		 void reset()
+        {
+            name[0] = team[0] = 0;
+            playermodel = -1;
+            privilege = PRIV_NONE;
+            connected = local = false;
+            authreq = 0;
+            position.setsize(0);
+            messages.setsize(0);
+            ping = 0;
+            aireinit = 0;
+            needclipboard = 0;
+            cleanclipboard();
+            mapchange();
         }
 
         void mapchange()
@@ -320,22 +332,6 @@ namespace server
         {
             if(clipboard) { if(--clipboard->referenceCount <= 0) enet_packet_destroy(clipboard); clipboard = NULL; }
             if(fullclean) lastclipboard = 0;
-        }
-
-        void reset()
-        {
-            name[0] = team[0] = 0;
-            playermodel = -1;
-            privilege = PRIV_NONE;
-            connected = local = false;
-            authreq = 0;
-            position.setsize(0);
-            messages.setsize(0);
-            ping = 0;
-            aireinit = 0;
-            needclipboard = 0;
-            cleanclipboard();
-            mapchange();
         }
 
         int geteventmillis(int servmillis, int clientmillis)
@@ -382,24 +378,23 @@ namespace server
     #define MM_PUBSERV ((1<<MM_OPEN) | (1<<MM_VETO))
     #define MM_COOPSERV (MM_AUTOAPPROVE | MM_PUBSERV | (1<<MM_LOCKED))
 
-    bool notgotitems = true;        // true when map has changed and waiting for clients to send item
+    bool notgotitems = true; //True when map has changed and waiting for clients to send item
     int gamemode = 0;
     int gamemillis = 0, gamelimit = 0, nextexceeded = 0;
+	string smapname = "";
     bool gamepaused = false;
-
-    string smapname = "";
     int interm = 0;
+	stream *mapdata = NULL;
     bool mapreload = false;
     enet_uint32 lastsend = 0;
     int mastermode = MM_OPEN, mastermask = MM_PRIVSERV;
     int currentmaster = -1;
-    stream *mapdata = NULL;
-
     vector<uint> allowedips;
     vector<ban> bannedips;
     vector<clientinfo *> connects, clients, bots;
     vector<worldstate *> worldstates;
     bool reliablemessages = false;
+
     void clearbans()
     {
         irc.speak("All bans cleared");
@@ -422,7 +417,6 @@ namespace server
 
     #define MAXDEMOS 12
     vector<demofile> demos;
-
     bool demonextmatch = false;
     stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
     int nextplayback = 0, demomillis = 0;
@@ -441,9 +435,7 @@ namespace server
 	VAR(minspreefrags, 2, 5, INT_MAX); 
 	VAR(shotguninsta, 0, 0, 1);
 	VAR(rocketinsta, 0, 0, 1);
-	VAR(chainguninsta, 0, 0, 1);
 	VAR(chainsawinsta, 0, 0, 1);
-	VAR(grenadeinsta, 0, 0, 1);
     VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
@@ -452,6 +444,7 @@ namespace server
 			case 2: mastermask = MM_COOPSERV; break;
 		}
 	});
+	void sendservmsg(const char *s) { sendf(-1, 1, "ris", N_SERVMSG, s); }
 
 	bool firstblood = false;
 
@@ -500,26 +493,13 @@ namespace server
         }
     }
 
-    void sendservmsg(const char *s) { sendf(-1, 1, "ris", N_SERVMSG, s); }
-
     void resetitems()
     {
         sents.shrink(0);
         //cps.reset();
     }
-
-    int getmastercn()
-    {
-        loopv(clients)
-        {
-            clientinfo *ci = clients[i];
-            if(ci->privilege == PRIV_MASTER)
-                return ci->clientnum;
-        }
-        return -1;
-    }
-
-    bool serveroption(const char *arg)
+	
+	bool serveroption(const char *arg)
     {
         if(arg[0]=='-') switch(arg[1])
         {
@@ -530,6 +510,26 @@ namespace server
             case 'g': setvar("serverbotlimit", atoi(&arg[2])); return true;
         }
         return false;
+    }
+	void startserv()
+	{
+	char *servername = serverdesc; //server description in server-init is name
+	char *passwrd = adminpass; 
+	
+	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour QServ server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
+	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
+	printf("\33[34m\"%s\" with admin password \"%s\" started on port %i \nCtrl-C to stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
+	}
+
+    int getmastercn()
+    {
+        loopv(clients)
+        {
+            clientinfo *ci = clients[i];
+            if(ci->privilege == PRIV_MASTER)
+                return ci->clientnum;
+        }
+        return -1;
     }
 
 	string blkmsg[3] = {"fuck", "shit", "cunt"};
@@ -561,16 +561,6 @@ namespace server
 			sendservmsg(d);
 			bad=false;
 		}
-	}
-
-	void startserv()
-	{
-	char *servername = serverdesc; //server description in server-init is name
-	char *passwrd = adminpass; 
-	
-	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour QServ server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
-	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
-	printf("\33[34m\"%s\" with admin password \"%s\" started on port %i \nCtrl-C to stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
 	}
 
     void serverinit()
@@ -873,7 +863,7 @@ namespace server
         {
             loopv(demos) delete[] demos[i].data;
             demos.shrink(0);
-            sendservmsg("Deleted all demos");
+            sendservmsg("Deleted all server-stored demos...");
         }
         else if(demos.inrange(n-1))
         {
@@ -2499,7 +2489,6 @@ namespace server
                 cq->state.state = CS_ALIVE;
                 cq->state.gunselect = gunselect;
                 cq->exceeded = 0;
-				out(ECHO_CONSOLE, "%s spawned", colorname(cq));
                 if(smode) smode->spawned(cq);
                 QUEUE_AI;
                 QUEUE_BUF({
@@ -2513,7 +2502,6 @@ namespace server
             {
                 if(cq) cq->addevent(new suicideevent);
                 luaCallback(LUAEVENT_SUICIDE, ci->clientnum);
-				out(ECHO_CONSOLE, "%s suicided", colorname(ci));
                 break;
             }
 
@@ -2596,7 +2584,7 @@ namespace server
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: Send your name and message to all other clients");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: Echo your message to everyone on the server");break;}
 							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: Send a private message to another client");break;}
-					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: Stop the server");break;}
+					        //if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: Stop the server");break;}
 					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: View the current server info");break;}
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: Display the servers uptime");break;}
 							if(textcmd("killall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#killall\nDescription: Frag everyone on the server");break;}
@@ -2613,7 +2601,7 @@ namespace server
 							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: Call all available IRC operators");break;}
 							if(textcmd("pausegame", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pausegame 1/0\nDescription: Pause the current game");break;}
 							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: Get this server's QServ version");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Privileged Commands: \f7me, say, pm, help, info, uptime, getversion, frag, killall, callops, forceintermission, allow/disallowmaster, ip, invadmin, kick, ban, clearb, stopserver, pausegame\nType \f2#help (command) \f7for information on a command");
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Privileged Commands: \f7me, say, stats, pm, help, givemaster, info, uptime, getversion, frag, killall, callops, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb, stopserver, pausegame\nType \f2#help (command) \f7for information on a command");
 							break;
 						
 							//Public commands
@@ -2622,7 +2610,7 @@ namespace server
 							if(textcmd("me", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f7Usage: #me (message)\nDescription: Send your name and message to all other clients");break;}
 							if(textcmd("say", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#say (message)\nDescription: Echo your message to everyone on the server");break;}
 							if(textcmd("pm", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pm (cn) (message)\nDescription: Send a private message to another client");break;}
-					        if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: Stop the server");break;}
+					        //if(textcmd("stopserver", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#stopserver (admin required)\nDescription: Stop the server");break;}
 					        if(textcmd("info", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#info\nDescription: View the current server info");break;}
 							if(textcmd("uptime", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#uptime\nDescription: Display the servers uptime");break;}
 							if(textcmd("killall", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#killall\nDescription: Frag everyone on the server");break;}
@@ -2638,7 +2626,7 @@ namespace server
 							if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: Clear all server bans");break;}
 							if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: Call all available IRC operators");break;}
 							if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: Get this server's version number and name");break;}
-							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Public Commands: \f7me, say, pm, help, info, uptime, getversion and callops\nType \f2#help (command) \f7for information on a command");
+							sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f4Public Commands: \f7me, say, stats, pm, help, givemaster, info, uptime, getversion and callops\nType \f2#help (command) \f7for information on a command");
 							break;
 							
 						//frags, flags, deaths, teamkills, shotdamage, damage
@@ -2887,14 +2875,14 @@ namespace server
 							break;
 						}
 						
-                        }else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){
+                        /*}else if(textcmd("stopserver", text) && ci->privilege == PRIV_ADMIN){ //*** "stopserver" command disabled 
 							out(ECHO_ALL, "%s stopped the server", colorname(ci));
                             kicknonlocalclients();
                             exit(EXIT_FAILURE);
        						break;
 					 	}else if(textcmd("stopserver", text)){
 					       sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (admin required)");
-					       break;
+					       break;*/
 
 						}else if(textcmd("info", text)){
 						   char *s = qservinfo;
