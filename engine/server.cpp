@@ -1,4 +1,4 @@
-// server.cpp: little more than enhanced multicaster
+// engine/server.cpp for QServ: little more than enhanced multicaster
 // runs dedicated or as client coroutine
   
 #include "engine.h"
@@ -306,25 +306,21 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
     else sendclientpacket(packet, chan);
 #endif
 }
-
-const char *disc_reasons[] = { "normal", "end of packet error", "client number error", "temporary ban", "tag type error", "client is banned", "server is in private mode", "server is full", "connection timed out", "spam", "banned"};
-
+const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };
 void disconnect_client(int n, int reason)
 {
-    if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
+    if(clients[n]->type!=ST_TCPIP) return;
     enet_peer_disconnect(clients[n]->peer, reason);
-	printf("Disconnected:"); //ties in with name on disconnect.
     server::clientdisconnect(n);
     clients[n]->type = ST_EMPTY;
     clients[n]->peer->data = NULL;
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
-    defformatstring(s)("\f0%s \f7disconnected: \f3%s\n", clients[n]->hostname, disc_reasons[reason]);
-	server::sendservmsg(s);
-	printf("client (%s) disconnected because: %s\n", clients[n]->hostname, disc_reasons[reason]);
-	irc.speak("(%s) disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
-}
+    defformatstring(s)("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
+    puts(s);
+    server::sendservmsg(s);
 
+}
 void kicknonlocalclients(int reason)
 {
     loopv(clients) if(clients[i]->type==ST_TCPIP) disconnect_client(i, reason);
@@ -570,20 +566,19 @@ void checkserversockets()        // reply all server info requests
 
 #define DEFAULTCLIENTS 8
 
-VARF(maxclients, 0, DEFAULTCLIENTS, MAXCLIENTS, { if(!maxclients) maxclients = DEFAULTCLIENTS; });
-VAR(serveruprate, 0, 0, INT_MAX);
-SVAR(serverip, "");
-VARF(serverport, 0, server::serverport(), 0xFFFF, { if(!serverport) serverport = server::serverport(); });
-
 #ifdef STANDALONE
 int curtime = 0, lastmillis = 0, totalmillis = 0;
 #endif
-
+VARF(serverport, 0, server::serverport(), 0xFFFF, { if(!serverport) serverport = server::serverport(); });
 void updatemasterserver()
 {
     if(mastername[0] && allowupdatemaster) requestmasterf("regserv %d\n", serverport);
     lastupdatemaster = totalmillis ? totalmillis : 1;
 }
+
+VARF(maxclients, 0, DEFAULTCLIENTS, MAXCLIENTS, { if(!maxclients) maxclients = DEFAULTCLIENTS; });
+VAR(serveruprate, 0, 0, INT_MAX);
+SVAR(serverip, "");
 
 void serverslice(bool dedicated, uint timeout)   // main server update, called from main loop in sp, or from below in dedicated server
 {

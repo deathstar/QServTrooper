@@ -12,11 +12,11 @@ namespace game
     void parseoptions(vector<const char *> &args)
     {
         loopv(args)
-#ifndef STANDALONE
+#ifndef STANDALONE //Standalone console server
             if(!game::clientoption(args[i]))
 #endif
-            if(!server::serveroption(args[i]))
-                conoutf(CON_ERROR, "Command not found: %s", args[i]);
+	      if(!server::serveroption(args[i])) //clientside 
+	      conoutf(CON_ERROR, "Command not found: %s", args[i]); 
     }
 }
 
@@ -34,7 +34,6 @@ namespace server
     static const int DEATHMILLIS = 300;
 
     struct clientinfo;
-
     struct gameevent
     {
         virtual ~gameevent() {}
@@ -76,7 +75,6 @@ namespace server
         vector<hitinfo> hits;
 
         bool keepable() const { return true; }
-
         void process(clientinfo *ci);
     };
 
@@ -88,7 +86,6 @@ namespace server
     struct pickupevent : gameevent
     {
         int ent;
-
         void process(clientinfo *ci);
     };
 
@@ -101,7 +98,6 @@ namespace server
         projectilestate() : numprojs(0) {}
 
         void reset() { numprojs = 0; }
-
         void add(int val)
         {
             if(numprojs>=N) numprojs = 0;
@@ -147,11 +143,11 @@ namespace server
         }
 
         void reset()
-        {  //QServ: reset rockets/health and respawn before clearing int's
+        {  //reset rockets/health and respawn before clearing int's
             if(state!=CS_SPECTATOR) state = editstate = CS_DEAD;
 			respawn();
  			rockets.reset();
-            grenades.reset();
+			grenades.reset();
 			maxhealth = 100;
 			frags = flags = deaths = teamkills = shotdamage = damage = 0;
 			timeplayed = 0;
@@ -288,7 +284,7 @@ namespace server
             return state.state==CS_ALIVE && exceeded && gamemillis > exceeded + calcpushrange();
         }
 		
-		 void reset()
+        void reset()
         {
             name[0] = team[0] = 0;
             playermodel = -1;
@@ -381,11 +377,11 @@ namespace server
     bool notgotitems = true; //True when map has changed and waiting for clients to send item
     int gamemode = 0;
     int gamemillis = 0, gamelimit = 0, nextexceeded = 0;
-	string smapname = "";
-    bool gamepaused = false;
-    int interm = 0;
-	stream *mapdata = NULL;
     bool mapreload = false;
+    string smapname = ""; //current map name
+    bool gamepaused = false; //pause game 1/0
+    int interm = 0;
+    stream *mapdata = NULL;
     enet_uint32 lastsend = 0;
     int mastermode = MM_OPEN, mastermask = MM_PRIVSERV;
     int currentmaster = -1;
@@ -398,7 +394,7 @@ namespace server
     void clearbans()
     {
         irc.speak("All bans cleared");
-        bannedips.shrink(0);
+        bannedips.shrink(0); //clear all bans 
     }
     void banPlayer(int i)
     {
@@ -436,7 +432,8 @@ namespace server
 	VAR(shotguninsta, 0, 0, 1);
 	VAR(rocketinsta, 0, 0, 1);
 	VAR(chainsawinsta, 0, 0, 1);
-    VARF(publicserver, 0, 0, 2, {
+
+   VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
 			case 0: default: mastermask = MM_PRIVSERV; break;
@@ -516,7 +513,7 @@ namespace server
 	char *servername = serverdesc; //server description in server-init is name
 	char *passwrd = adminpass; 
 	
-	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour QServ server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
+	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
 	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
 	printf("\33[34m\"%s\" with admin password \"%s\" started on port %i \nCtrl-C to stop server\33[0m\n\n", servername, passwrd, getvar("serverport"));
 	}
@@ -869,7 +866,7 @@ namespace server
         {
             delete[] demos[n-1].data;
             demos.remove(n-1);
-            defformatstring(msg)("Deleted demo %d", n);
+            defformatstring(msg)("Deleted demo: %d", n);
             sendservmsg(msg);
         }
     }
@@ -1020,7 +1017,7 @@ namespace server
             if(haspass) ci->privilege = PRIV_ADMIN;
             else if(!authname && !(mastermask&MM_AUTOAPPROVE) && !ci->privilege && !ci->local)
             {
-                sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Master is currently disabled");
+                sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Master (\"/setmaster\") is currently disabled");
                 return;
             }
             else
@@ -1042,8 +1039,8 @@ namespace server
         mastermode = MM_OPEN;
         allowedips.shrink(0);
         string msg;
-		string msg_irc;
-        if(val && authname) formatstring(msg)("\f0%s \f7claimed \f1%s \f7as '\fs\f5%s\fr'", colorname(ci), name, authname);
+	string msg_irc;
+	if(val && authname) formatstring(msg)("\f0%s \f7claimed \f1%s \f7as '\fs\f5%s\fr'", colorname(ci), name, authname); //auth claim admin
         else formatstring(msg)("\f0%s \f7%s \f1%s", colorname(ci), val ? "claimed" : "relinquished", name);
         sendservmsg(msg);
 		formatstring(msg_irc)("%s %s %s", colorname(ci), val ? "claimed" : "relinquished", name);
@@ -1634,8 +1631,8 @@ namespace server
 		string msg;
 	};
 	vector <multikillmsg> multikillmessages;
-	SVAR(defmultikillmsg, "MULTI KILL"); // this is the default message for multikills that don't have a string. it is followed by the number of frags in braces
-	VAR(minmultikill, 2, 2, INT_MAX); // minimum number of kills for a multi kill
+	SVAR(defmultikillmsg, "MULTI KILL"); //default message for multikills. The message is followed by the number of frags 
+	VAR(minmultikill, 2, 2, INT_MAX); // minimum number of kills for a multi-kill to occur 
 	ICOMMAND(addmultikillmsg, "is", (int *frags, char *msg), { multikillmsg m; m.frags = *frags; copystring(m.msg, msg); multikillmessages.add(m); });
 
  	void dodamage(clientinfo *target, clientinfo *actor, int damage, int gun, const vec &hitpush = vec(0, 0, 0))
@@ -1658,7 +1655,7 @@ namespace server
 				{
 			    	actor->state.teamkills++;
 			        target->state.deaths++;
-					if(actor == target) {} 
+				if(actor == target) {} //if the teamkiller is the target, do nothing
 					else {
 			        	defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 						sendservmsg(msg);
@@ -1675,7 +1672,7 @@ namespace server
             actor->state.frags += fragvalue;
             if(fragvalue>0)
             {
-                int friends = 0, enemies = 0; // note: friends also includes the fragger
+                int friends = 0, enemies = 0; //friends also includes the fragger
                 if(m_teammode) loopv(clients) if(strcmp(clients[i]->team, actor->team)) enemies++; else friends++;
                 else { friends = 1; enemies = clients.length()-1; }
                 actor->state.effectiveness += fragvalue*friends/float(max(enemies, 1));
@@ -1699,8 +1696,7 @@ namespace server
             if(smode) smode->died(target, actor);
             ts.state = CS_DEAD;
             ts.lastdeath = gamemillis;
-            // don't issue respawn yet until DEATHMILLIS has elapsed
-            // ts.respawn();
+            //ts.respawn(); don't issue respawn yet until DEATHMILLIS has elapsed
         }
  	void explodeevent::process(clientinfo *ci)
     {
@@ -1715,8 +1711,8 @@ namespace server
                 if(!gs.grenades.remove(id)) return;
                 break;
 
-            default:
-                return;
+        default:
+            return;
         }
         sendf(-1, 1, "ri4x", N_EXPLODEFX, ci->clientnum, gun, id, ci->ownernum);
         loopv(hits)
@@ -1790,6 +1786,11 @@ namespace server
         process(ci);
         return true;
     }
+    void clearevent(clientinfo *ci)
+    {
+        delete ci->events.remove(0);
+    }
+
 
     bool timedevent::flush(clientinfo *ci, int fmillis)
     {
@@ -1800,11 +1801,6 @@ namespace server
             process(ci);
         }
         return true;
-    }
-
-    void clearevent(clientinfo *ci)
-    {
-        delete ci->events.remove(0);
     }
 
     void flushevents(clientinfo *ci, int millis)
@@ -1927,7 +1923,6 @@ namespace server
     struct crcinfo
     {
         int crc, matches;
-
         crcinfo() {}
         crcinfo(int crc, int matches) : crc(crc), matches(matches) {}
 
@@ -2048,13 +2043,12 @@ namespace server
 			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
 			savescore(ci);
             sendf(-1, 1, "ri2", N_CDIS, n);
-			//clearbans when server empties disabled...
-            //if(!numclients(-1, false, true)) noclients(); 
+            //if(!numclients(-1, false, true)) noclients(); do not clearbans when server is empty (noclients) 
         }
         else connects.removeobj(ci);
     }
 
-    int reserveclients() { return 3; }
+     int reserveclients() { return 3; }
 
     struct gbaninfo
     {
@@ -2063,15 +2057,15 @@ namespace server
 
     vector<gbaninfo> gbans;
 
-	bool checkgban(uint ip)
-    {
-        loopv(gbans) if((ip & gbans[i].mask) == gbans[i].ip) return true;
-        return false;
-    }
-
     void cleargbans()
     {
         gbans.shrink(0);
+    }
+
+    bool checkgban(uint ip)
+    {
+        loopv(gbans) if((ip & gbans[i].mask) == gbans[i].ip) return true;
+        return false;
     }
 
     void addgban(const char *name)
@@ -2099,7 +2093,7 @@ namespace server
             if(checkgban(getclientip(ci->clientnum))) disconnect_client(ci->clientnum, DISC_IPBAN);
         }
     }
-
+        
     int allowconnect(clientinfo *ci, const char *pwd)
     {
         if(ci->local) return DISC_NONE;
@@ -2144,11 +2138,7 @@ namespace server
         ci->authreq = 0;
         setmaster(ci, true, "", ci->authname);
     }
-    char *getclientname(int i)
-    {
-        clientinfo *cn = (clientinfo *)getclientinfo(i);
-        return cn->name;
-    }
+
     void authchallenged(uint id, const char *val)
     {
         clientinfo *ci = findauth(id);
@@ -2166,7 +2156,7 @@ namespace server
         if(!requestmasterf("reqauth %u %s\n", ci->authreq, ci->authname))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");
         }
     }
 
@@ -2180,7 +2170,7 @@ namespace server
         if(!requestmasterf("confauth %u %s\n", id, val))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");
         }
     }
 
@@ -2204,13 +2194,13 @@ namespace server
     {
         if(!m_edit || len > 1024*1024) return;
         clientinfo *ci = getinfo(sender);
-		if(mapdata) DELETEP(mapdata);
         if(ci->state.state==CS_SPECTATOR && !ci->privilege && !ci->local) return;
+        if(mapdata) DELETEP(mapdata);
         if(!len) return;
         mapdata = opentempfile("mapdata", "w+b");
         if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to open temporary file for map"); return; }
         mapdata->write(data, len);
-        defformatstring(msg)("\f0%s \f7uploaded a map to the server, type \f2\"/getmap\" \f7to recieve it", colorname(ci));
+        defformatstring(msg)("\f0%s \f7uploaded a map to the server, [type \f2\"/getmap\" \f7to receive it]", colorname(ci));
         sendservmsg(msg);
     }
 
@@ -2221,34 +2211,19 @@ namespace server
         loopv(clients)
         {
             clientinfo &e = *clients[i];
-            if(e.clientnum != ci->clientnum && e.needclipboard >= ci->lastclipboard)
+            if(e.clientnum != ci->clientnum && e.needclipboard - ci->lastclipboard >= 0)
             {
                 if(!flushed) { flushserver(true); flushed = true; }
                 sendpacket(e.clientnum, 1, ci->clipboard);
             }
         }
     }
-
-    char *invisadmin()
+	char *invisadmin()
     {
         defformatstring(text)("invadmin %s", adminpass);
         char *outtext = text;
         return outtext;
     }
-	
-    void bancn(int i)
-    {
-        clientinfo *cn = (clientinfo *)getclientinfo(i);
-        if (cn->connected)
-        {
-            ban &b = bannedips.add();
-            b.time = gamemillis;
-            b.ip = getclientip(cn->clientnum);
-            allowedips.removeobj(b.ip);
-            disconnect_client(cn->clientnum, DISC_BANNED);
-        }
-    }
-
 	//Parses exactly each byte of the packet
     void parsepacket(int sender, int chan, packetbuf &p) 
     {
@@ -2497,15 +2472,8 @@ namespace server
                 });
                 break;
             }
-
-            case N_SUICIDE:
-            {
-                if(cq) cq->addevent(new suicideevent);
-                luaCallback(LUAEVENT_SUICIDE, ci->clientnum);
-                break;
-            }
-
-            case N_SHOOT:
+           
+	    case N_SHOOT:
             {
                 shotevent *shot = new shotevent;
                 shot->id = getint(p);
@@ -2530,6 +2498,13 @@ namespace server
                     cq->setpushed();
                 }
                 else delete shot;
+                break;
+            }
+
+            case N_SUICIDE:
+            {
+                if(cq) cq->addevent(new suicideevent);
+                luaCallback(LUAEVENT_SUICIDE, ci->clientnum);
                 break;
             }
 

@@ -24,11 +24,11 @@ static int lua_getnumclients(lua_State *Lua)
     return 1;
 }
 
-static int lua_getclientname(lua_State *Lua)
-{
-    lua_pushstring(Lua, server::getclientname(luaL_checkint(Lua, 1)));
-    return 1;
-}
+//static int lua_getclientname(lua_State *Lua)
+//{
+//    lua_pushstring(Lua, server::getclientname(luaL_checkint(Lua, 1)));
+//    return 1;
+//}
 
 /*void luaCallback(int event, int sender, char *text)
 {
@@ -96,7 +96,7 @@ static const luaL_Reg qservlib[] =
 {
     {"toserver", lua_toserver},
     {"clientcount", lua_getnumclients},
-    {"getclientname", lua_getclientname},
+    //{"getclientname", lua_getclientname},
     {"intermission", lua_intermission},
     {"AddCallback", lua_addcallback},
     {NULL, NULL}
