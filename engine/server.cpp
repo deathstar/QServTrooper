@@ -306,7 +306,7 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
     else sendclientpacket(packet, chan);
 #endif
 }
-const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };
+const char *disc_reasons[] = { "normal", "end of packet error", "client number error", "temporary ban", "tag type error", "client is banned", "server is in private mode", "server is full", "connection timed out", "spam", "banned"};
 void disconnect_client(int n, int reason)
 {
     if(clients[n]->type!=ST_TCPIP) return;

@@ -2218,14 +2218,15 @@ namespace server
             }
         }
     }
+
 	char *invisadmin()
     {
         defformatstring(text)("invadmin %s", adminpass);
         char *outtext = text;
         return outtext;
     }
-	//Parses exactly each byte of the packet
-    void parsepacket(int sender, int chan, packetbuf &p) 
+
+    void parsepacket(int sender, int chan, packetbuf &p) //Parses exactly each byte of the packet
     {
         if(sender<0) return;
         char text[MAXTRANS];
@@ -2248,7 +2249,6 @@ namespace server
                     disconnect_client(sender, disc);
                     return;
                 }
-				
 				//Client connect
 				clients.add(ci);
 				ci->connected = true;
@@ -2278,7 +2278,7 @@ namespace server
                     server::sendservmsg(b);
 					irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
                 }
-				defformatstring(l)("Welcome to %s \f7running \f4QServ\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands and enjoy your stay.", servername, colorname(ci));
+				defformatstring(l)("Welcome to %s\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands and \f2\"#info\" for server information; enjoy your stay", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				if(m_demo) setupdemoplayback();
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
