@@ -419,7 +419,7 @@ namespace server
 	
 	SVAR(serverdesc, "");
 	SVAR(adminpass, "");
-	SVAR(swarewordface, "");
+	SVAR(swaretext, "");
 	SVAR(botname, "");
 	SVAR(qservinfo, "");
 	VAR(enablegeoip, 0, 0, 1);
