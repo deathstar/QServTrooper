@@ -422,6 +422,7 @@ namespace server
 	SVAR(swarewordface, "");
 	SVAR(botname, "");
 	SVAR(qservinfo, "");
+	VAR(enablegeoip, 0, 0, 1);
 	VAR(chattoconsole, 0, 0, 1);
 	VAR(tkpenalty, 0, 0, 1);
 	SVAR(irc_operators, "");
@@ -432,7 +433,6 @@ namespace server
 	VAR(shotguninsta, 0, 0, 1);
 	VAR(rocketinsta, 0, 0, 1);
 	VAR(chainsawinsta, 0, 0, 1);
-
    VARF(publicserver, 0, 0, 2, {
 		switch(publicserver)
 		{
@@ -2265,20 +2265,25 @@ namespace server
 				sendwelcome(ci);
                 sendinitclient(ci);
 				out(ECHO_CONSOLE, "%s (%s) connected", ci->name, ci->ip);
+				if(getvar("enablegeoip")) {
 				GeoIP *gi;
 				gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
 				char *servername = serverdesc;
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
-					defformatstring(b)("\f0%s's \f7(\f4%s\f7) \f7location is \f2Unidentifable", colorname(ci), ci->ip);
-					server::sendservmsg(b);
+					out(ECHO_SERV, "\f0%s's \f7(\f4%s\f7) \f7location is \f2Unidentifable", colorname(ci), ci->ip);
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else{
-                    defformatstring(b)("\f0%s \f7connected from \f2%s", colorname(ci), ip);
-                    server::sendservmsg(b);
+					out(ECHO_SERV, "\f0%s \f7connected from \f2%s", colorname(ci), ip);
 					irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
-                }
-				defformatstring(l)("Welcome to %s\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands and \f2\"#info\" for server information; enjoy your stay", servername, colorname(ci));
+                  }
+				}
+				else if(!getvar("enablegeoip")) { 
+					out(ECHO_SERV, "\f0%s \f7connected", colorname(ci));
+					irc.speak("%s (%s) connected", colorname(ci), ci->ip);
+				}
+				char *servername = serverdesc;
+				defformatstring(l)("Welcome to %s\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands and \f2\"#info\" \f7for server information; enjoy your stay", servername, colorname(ci));
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				if(m_demo) setupdemoplayback();
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
