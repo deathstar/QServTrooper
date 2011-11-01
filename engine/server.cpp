@@ -616,7 +616,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     if(totalmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = totalmillis;
-        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("Status: %d clients connected, %.1f packet(s) sent, %.1f packet(s) recieved (K/sec)\n", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
+        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("Status: %d clients connected \n%.1f packet(s) sent, %.1f packet(s) recieved (K/sec)\n", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
 		serverhost->totalSentData = serverhost->totalReceivedData = 0;
     }
 
@@ -736,7 +736,7 @@ bool setuplistenserver(bool dedicated)
     ENetAddress address = { ENET_HOST_ANY, serverport <= 0 ? server::serverport() : serverport };
     if(*serverip)
     {
-        if(enet_address_set_host(&address, serverip)<0) conoutf(CON_WARN, "zWARNING: server ip not resolved");
+        if(enet_address_set_host(&address, serverip)<0) conoutf(CON_WARN, "WARNING: server ip not resolved");
         else serveraddress.host = address.host;
     }
     serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, serveruprate);

@@ -509,12 +509,10 @@ namespace server
         }
         return false;
     }
-	void startserv()
+	void startserv() //startserver 
 	{
-		//server::serverip = serverip;
-	char *servername = serverdesc; //server description in server-init is name
+	char *servername = serverdesc;
 	char *passwrd = adminpass; 
-	
 	if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
 	if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
 	printf("\33[34m\"%s\" with admin password \"%s\" started on port %i\33[0m\n\n", servername, passwrd, getvar("serverport"));
