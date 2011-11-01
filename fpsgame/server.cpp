@@ -509,7 +509,7 @@ namespace server
         }
         return false;
     }
-	void startserv() //startserver 
+	void startserv() 
 	{
 	char *servername = serverdesc;
 	char *passwrd = adminpass; 
@@ -2158,7 +2158,7 @@ namespace server
         if(!requestmasterf("reqauth %u %s\n", ci->authreq, ci->authname))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7not connected to authentication server");
         }
     }
 
@@ -2172,7 +2172,7 @@ namespace server
         if(!requestmasterf("confauth %u %s\n", id, val))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7not connected to authentication server");
         }
     }
 
@@ -2202,7 +2202,7 @@ namespace server
         mapdata = opentempfile("mapdata", "w+b");
         if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to open temporary file for map"); return; }
         mapdata->write(data, len);
-        defformatstring(msg)("\f0%s \f7uploaded a map to the server, [type \f2\"/getmap\" \f7to receive it]", colorname(ci));
+        defformatstring(msg)("\f0%s \f7uploaded a map to the server; type \f2\"/getmap\" \f7to receive it", colorname(ci));
         sendservmsg(msg);
     }
 
