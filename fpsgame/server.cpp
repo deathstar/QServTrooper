@@ -2365,7 +2365,7 @@ namespace server
                 {
                     flushclientposition(*cp);
                     sendf(-1, 0, "ri4x", N_TELEPORT, pcn, teleport, teledest, cp->ownernum);
-					if(getvar("conteleport") {out(ECHO_CONSOLE, "%s teleported", cp->name);}
+					if(getvar("conteleport")) {out(ECHO_CONSOLE, "%s teleported", cp->name);}
                 }
                 break;
             }
