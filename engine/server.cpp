@@ -616,7 +616,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     if(totalmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = totalmillis;
-        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("Status: %d clients connected \n%.1f packet(s) sent, %.1f packet(s) recieved (K/sec)\n", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
+        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("QServ Status: %d client(s) connected. Max clients allowed: %i \n%.1f Packet(s) sent, %.1f packet(s) recieved (K/sec)\n", nonlocalclients, maxclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
 		serverhost->totalSentData = serverhost->totalReceivedData = 0;
     }
 

@@ -430,6 +430,7 @@ namespace server
 	SVAR(swaretext, "");
 	SVAR(botname, "");
 	SVAR(qservinfo, "");
+	SVAR(qservversion, "");
 	SVAR(irc_operators, "");
 	SVAR(serverpass, "");
 	SVAR(spreesuicidemsg, "was doing fine until he killed himself");
@@ -2406,6 +2407,7 @@ namespace server
                     ci->events.setsize(0);
                     ci->state.rockets.reset();
                     ci->state.grenades.reset();
+					out(ECHO_CONSOLE, "%s entered edit mode", colorname(ci));
                 }
                 else ci->state.state = ci->state.editstate;
                 QUEUE_MSG;
@@ -2642,11 +2644,11 @@ namespace server
 							break;
 							
 						}else if(textcmd("getversion", text)){
-							defformatstring(s)("%s", qservinfo);
+							defformatstring(s)("%s", qservversion);
 							sendservmsg(s);
 							break;
 						}else if(textcmd("getversion", text) && ci->privilege){
-							defformatstring(s)("%s", qservinfo);
+							defformatstring(s)("%s", qservversion);
 							sendservmsg(s);
 							break;
 							
