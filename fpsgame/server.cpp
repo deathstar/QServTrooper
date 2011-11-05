@@ -192,6 +192,7 @@ namespace server
             damage = gs.damage;
             timeplayed = gs.timeplayed;
             effectiveness = gs.effectiveness;
+			out(ECHO_CONSOLE, "Clients score saved");
         }
 
         void restore(gamestate &gs)
@@ -378,7 +379,7 @@ namespace server
     int gamemode = 0;
     int gamemillis = 0, gamelimit = 0, nextexceeded = 0;
     bool mapreload = false;
-    string smapname = ""; //current map name
+	string smapname = "turbine";
     bool gamepaused = false; //pause game 1/0
     int interm = 0;
     stream *mapdata = NULL;
@@ -425,6 +426,7 @@ namespace server
 	VAR(rocketinsta, 0, 0, 1);
 	VAR(chainsawinsta, 0, 0, 1);
 	VAR(enablestopservercmd, 0, 0, 1);
+	VAR(conteleport, 0, 0, 1);
 	SVAR(serverdesc, ""); 
 	SVAR(adminpass, "");
 	SVAR(swaretext, "");
@@ -2046,7 +2048,7 @@ namespace server
 			irc.speak("%s (%s) disconnected", colorname(ci), ci->ip);
 			savescore(ci);
             sendf(-1, 1, "ri2", N_CDIS, n);
-            //if(!numclients(-1, false, true)) noclients(); do not clearbans when server is empty (noclients) 
+            if(!numclients(-1, false, true)) noclients(); 
         }
         else connects.removeobj(ci);
     }
@@ -2132,6 +2134,7 @@ namespace server
         clientinfo *ci = findauth(id);
         if(!ci) return;
         ci->authreq = 0;
+		out(ECHO_CONSOLE, "Auth failed for client %s", colorname(ci));
     }
 
     void authsucceeded(uint id)
@@ -2159,7 +2162,7 @@ namespace server
         if(!requestmasterf("reqauth %u %s\n", ci->authreq, ci->authname))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Not connected to authentication server");
         }
     }
 
@@ -2173,7 +2176,7 @@ namespace server
         if(!requestmasterf("confauth %u %s\n", id, val))
         {
             ci->authreq = 0;
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7not connected to authentication server");
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Not connected to authentication server");
         }
     }
 
@@ -2205,6 +2208,7 @@ namespace server
         mapdata->write(data, len);
         defformatstring(msg)("\f0%s \f7uploaded a map to the server; type \f2\"/getmap\" \f7to receive it", colorname(ci));
         sendservmsg(msg);
+		out(ECHO_CONSOLE, "%s uploaded map \"%s\" to the server", colorname(ci), smapname);
     }
 
     void sendclipboard(clientinfo *ci)
@@ -2274,7 +2278,7 @@ namespace server
 				char *servername = serverdesc;
                 defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
                 if(!strcmp("(null)", ip)){
-					out(ECHO_SERV, "\f0%s's \f7(\f4%s\f7) \f7location is \f2Unidentifable", colorname(ci), ci->ip);
+					out(ECHO_SERV, "\f0%s's \f7(\f4%s\f7) \f7location is \f2Unidentifable", colorname(ci), ci->ip); //if GeoIP returns null
                     irc.speak("%s (%s) connected", colorname(ci), ci->ip);
                 }else{
 					out(ECHO_SERV, "\f0%s \f7connected from \f2%s", colorname(ci), ip);
@@ -2283,10 +2287,11 @@ namespace server
 				}
 				else if(!getvar("enablegeoip")) { 
 					out(ECHO_SERV, "\f0%s \f7connected", colorname(ci));
+					out(ECHO_CONSOLE, "%s connected", colorname(ci));
 					irc.speak("%s (%s) connected", colorname(ci), ci->ip);
 				}
 				char *servername = serverdesc;
-				defformatstring(l)("Welcome to %s\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands and \f2\"#info\" \f7for server information; enjoy your stay", servername, colorname(ci));
+				defformatstring(l)("Welcome to %s\f7, \f0%s\f7. \nType \f1\"#help\" \f7for a list of commands and \f2\"#info\" \f7for server information; enjoy your stay", servername, colorname(ci)); //welcome message
                 sendf(sender, 1, "ris", N_SERVMSG, l);
 				if(m_demo) setupdemoplayback();
 				luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
@@ -2360,6 +2365,7 @@ namespace server
                 {
                     flushclientposition(*cp);
                     sendf(-1, 0, "ri4x", N_TELEPORT, pcn, teleport, teledest, cp->ownernum);
+					if(getvar("conteleport") {out(ECHO_CONSOLE, "%s teleported", cp->name);}
                 }
                 break;
             }
@@ -2921,6 +2927,7 @@ namespace server
 			case N_SAYTEAM:
             {
                 getstring(text, p);
+				out(ECHO_CONSOLE, "%s [team]: %s", newstring(ci->name), newstring(text));
                 if(!ci || !cq || (ci->state.state==CS_SPECTATOR && !ci->local && !ci->privilege) || !m_teammode || !cq->team[0]) break;
                 loopv(clients)
                 {
@@ -3029,13 +3036,13 @@ namespace server
                 break;
             }
 
-            case N_PING:
+            case N_PING: //Client->server keepalive heartbeat
                 sendf(sender, 1, "i2", N_PONG, getint(p));
                 break;
 
             case N_CLIENTPING:
             {
-				if((ci->ping > 500) &&  !ci->pingwarned) {defformatstring(s)("\f6Attention: \f0%s\f7, please lower your ping; it is higher than this servers maximum ping limit (500)", colorname(ci)); sendservmsg(s); ci->pingwarned = true;}
+				if((ci->ping > 550) &&  !ci->pingwarned) {defformatstring(s)("\f6Attention: \f0%s\f7, please lower your ping; it is higher than this servers maximum ping limit (550)", colorname(ci)); sendservmsg(s); ci->pingwarned = true;}
                 int ping = getint(p);
                 if(ci)
                 {
@@ -3083,7 +3090,8 @@ namespace server
                 if(ci->privilege || ci->local)
                 {
                     bannedips.shrink(0);
-					out(ECHO_ALL, "\f0%s \f7cleared all bans", colorname(ci));
+					out(ECHO_SERV, "\f0%s \f7cleared all bans", colorname(ci));
+					out(ECHO_CONSOLE, "%s cleared all bans", colorname(ci));
                 }
                 break;
             }
@@ -3201,13 +3209,12 @@ namespace server
             case N_GETMAP:
                 if(mapdata)
                 {
-                    sendf(sender, 1, "ris", N_SERVMSG, "Server uploading map...");
-
+                    sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
+                    ci->needclipboard = totalmillis;
+					sendf(sender, 1, "ris", N_SERVMSG, "Server uploading map...");
 					defformatstring(l)("\f0%s \f7is receiving map \f1\"%s\"", colorname(ci), smapname);
 					sendservmsg(l);
 					printf("%s is downloading the map...", colorname(ci));
-                    sendfile(sender, 2, mapdata, "ri", N_SENDMAP);
-                    ci->needclipboard = totalmillis;
                 }
                 else sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7No map to send (none previously uploaded)");
                 break;
@@ -3222,6 +3229,8 @@ namespace server
                     resetitems();
                     notgotitems = false;
                     if(smode) smode->reset(true);
+					out(ECHO_SERV, "\f0%s \f7started a new map", colorname(ci));
+					out(ECHO_CONSOLE, "%s started a new map", colorname(ci));
                 }
                 QUEUE_MSG;
                 break;
@@ -3239,6 +3248,7 @@ namespace server
             {
                 aiman::reqadd(ci, getint(p));
                 break;
+				out(ECHO_CONSOLE, "fuck me in the butt with a plunger");
             }
 
             case N_DELBOT:
