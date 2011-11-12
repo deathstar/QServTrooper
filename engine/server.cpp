@@ -463,7 +463,7 @@ void processmasterinput()
         while(args < end && isspace(*args)) args++;
 
         if(!strncmp(input, "failreg", cmdlen))
-            conoutf(CON_ERROR, "Master server registration to %s failed (%s)", mastername, args);
+            conoutf(CON_ERROR, "\nMaster server registration to %s failed (%s)\n", mastername, args);
         else if(!strncmp(input, "succreg", cmdlen))
         	conoutf("Successfully registered to master server: %s", mastername);
         else server::processmasterinput(input, cmdlen, args);
@@ -616,7 +616,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     if(totalmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = totalmillis;
-        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("QServ Status: %d client(s) connected. Max clients allowed: %i \n%.1f Packet(s) sent, %.1f packet(s) recieved (K/sec)\n", nonlocalclients, maxclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
+        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("\nQServ Status: %d client(s) connected. Max clients allowed: %i \n%.1f Packet(s) sent, %.1f packet(s) recieved (K/sec)\n\n", nonlocalclients, maxclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
 		serverhost->totalSentData = serverhost->totalReceivedData = 0;
     }
 

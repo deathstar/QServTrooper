@@ -232,13 +232,13 @@ namespace aiman
 	void reqadd(clientinfo *ci, int skill)
 	{
         if(!ci->local && !ci->privilege) return;
-        if(!addai(skill, !ci->local && ci->privilege < PRIV_ADMIN ? botlimit : -1)) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to add bot");
+        if(!addai(skill, !ci->local && ci->privilege < PRIV_ADMIN ? botlimit : -1)) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Could not add bot");
 	}
 
 	void reqdel(clientinfo *ci)
 	{
         if(!ci->local && !ci->privilege) return;
-        if(!deleteai()) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7no bots to remove");
+        if(!deleteai()) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7No bots to remove");
 	}
 
     void setbotlimit(clientinfo *ci, int limit)

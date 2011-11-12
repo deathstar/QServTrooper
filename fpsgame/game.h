@@ -377,7 +377,7 @@ struct fpsstate
        return ammo[type-I_SHELLS+GUN_SG]>=is.max;
     }
 
-    bool canpickup(int type)
+	bool canpickup(int type)
     {
         if(type<I_SHELLS || type>I_QUAD) return false;
         itemstat &is = itemstats[type-I_SHELLS];
@@ -393,8 +393,7 @@ struct fpsstate
             default: return ammo[is.info]<is.max;
         }
     }
-
-    void pickup(int type)
+	void pickup(int type)
     {
         if(type<I_SHELLS || type>I_QUAD) return;
         itemstat &is = itemstats[type-I_SHELLS];
@@ -418,7 +417,7 @@ struct fpsstate
                 break;
         }
     }
-
+	
     void respawn()
     {
         health = maxhealth;
@@ -430,14 +429,13 @@ struct fpsstate
         loopi(NUMGUNS) ammo[i] = 0;
         ammo[GUN_FIST] = 1;
     }
-
     void spawnstate(int gamemode)
     {
         if(m_demo)
         {
             gunselect = GUN_FIST;
         }
-        else if(m_insta)
+		else if(m_insta)
         {
             armour = 0;
             health = 1;
@@ -498,7 +496,7 @@ struct fpsstate
     }
 
     // just subtract damage here, can set death, etc. later in code calling this
-    int dodamage(int damage)
+	int dodamage(int damage)
     {
         int ad = damage*(armourtype+1)*25/100; // let armour absorb when possible
         if(ad>armour) ad = armour;
@@ -507,13 +505,12 @@ struct fpsstate
         health -= damage;
         return damage;
     }
-
+	
     int hasammo(int gun, int exclude = -1)
     {
         return gun >= 0 && gun <= NUMGUNS && gun != exclude && ammo[gun] > 0;
     }
 };
-
 struct fpsent : dynent, fpsstate
 {
     int weight;                         // affects the effectiveness of hitpush

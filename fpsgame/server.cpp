@@ -3,19 +3,26 @@
 #include "IRCbot.h"
 #include "sauerLua.h"
 
-//QServ Server.cpp file 
+//Server.cpp file of QServ 
+//Copyright © 2011 George D. Scott
+//and the Sauerbraten Developers
 
-extern ircBot irc; 
+//QServ is built for speed, this file is an important part
+//of the code, it is the main server file and has been modified
+//to run faster, and use less CPU by removing old functions
+//reorganizing the code, and moving all messages to after the actions 
+
+extern ircBot irc;
 
 namespace game
 {
  void parseoptions(vector<const char *> &args)
  {
  loopv(args)
-#ifndef STANDALONE //Standalone console server
+#ifndef STANDALONE //Standalone QServ Server
  if(!game::clientoption(args[i]))
-#endif
- if(!server::serveroption(args[i])) //clientside 
+#endif 
+ if(!server::serveroption(args[i])) 
  conoutf(CON_ERROR, "Command not found: %s", args[i]); 
  }
 }
@@ -24,7 +31,7 @@ extern ENetAddress masteraddress;
 
 namespace server
 {
- struct server_entity // server side version of "entity" type
+ struct server_entity //Server side version of "entity" type
  {
  int type;
  int spawntime;
@@ -142,27 +149,27 @@ int spreefrags;
  return gamemillis - lastshot >= gunwait;
  }
 
- void reset()
- { //reset rockets/health and respawn before clearing int's
+ void reset()//reset rockets/health and respawn before clearing int's
+ { 
  if(state!=CS_SPECTATOR) state = editstate = CS_DEAD;
-respawn();
+ respawn();
  rockets.reset();
-grenades.reset();
-maxhealth = 100;
-frags = flags = deaths = teamkills = shotdamage = damage = 0;
-timeplayed = 0;
-multifrags = spreefrags = 0;
-effectiveness = 0;
-lastfragmillis = 0;
+ grenades.reset();
+ frags = flags = deaths = teamkills = shotdamage = damage = 0;
+ maxhealth = 100;
+ timeplayed = 0;
+ effectiveness = 0;
+ lastfragmillis = 0;
+ multifrags = spreefrags = 0;
  }
 
  void respawn()
  {
  fpsstate::respawn();
  o = vec(-1e10f, -1e10f, -1e10f);
+ lastshot = 0;
  lastdeath = 0;
  lastspawn = -1;
- lastshot = 0;
  }
 
  void reassign()
@@ -192,7 +199,7 @@ lastfragmillis = 0;
  damage = gs.damage;
  timeplayed = gs.timeplayed;
  effectiveness = gs.effectiveness;
-out(ECHO_CONSOLE, "Clients score saved");
+ out(ECHO_CONSOLE, "Clients score saved");
  }
 
  void restore(gamestate &gs)
@@ -207,6 +214,8 @@ out(ECHO_CONSOLE, "Clients score saved");
  gs.damage = damage;
  gs.timeplayed = timeplayed;
  gs.effectiveness = effectiveness;
+ out(ECHO_SERV, "Client reconnected");
+ out(ECHO_CONSOLE, "Client reconnected. Found previous score");
  }
  };
 
@@ -519,7 +528,7 @@ char *passwrd = adminpass;
 if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
 if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
 printf("\33[34m\"%s\" with admin password \"%s\" started on port %i\33[0m\n\n", servername, passwrd, getvar("serverport"));
-printf("\33[33mUse \"/connect (your ip) %i\" to access your server\33[0m\n", getvar("serverport"));
+//printf("\33[33mUse \"/connect (your ip) %i\" to access your server\33[0m\n", getvar("serverport"));
 printf("\33[31mCtrl-C to stop server\33[0m\n");
 }
 
