@@ -1680,7 +1680,7 @@ sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f1Notice: \f7You were suicided fo
  }
 } 
 }
-}
+
  if(actor!=target && isteam(actor->team, target->team)) actor->state.teamkills++;
  int fragvalue = smode ? smode->fragvalue(target, actor) : (target==actor || isteam(target->team, actor->team) ? -1 : 1);
  actor->state.frags += fragvalue;
@@ -1712,6 +1712,7 @@ if(actor->state.spreefrags == spreemessages[i].frags) out(ECHO_SERV, "\f0%s \f7%
  ts.lastdeath = gamemillis;
  //ts.respawn(); don't issue respawn yet until DEATHMILLIS has elapsed
  }
+}
  void explodeevent::process(clientinfo *ci)
  {
  gamestate &gs = ci->state;
