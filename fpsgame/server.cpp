@@ -7,7 +7,7 @@
 
 //Server.cpp file of QServ 
 
-//* Code completly rearranged and organized 
+//Code entirely rearranged and organized 
 //Built for speed to execute the most important
 //activity first, proceding with the
 //less important activities and messages. 
