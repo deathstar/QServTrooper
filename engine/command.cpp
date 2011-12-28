@@ -595,8 +595,8 @@ char *executeret(const char *p)               // all evaluation happens here, re
             {
                 if(!isinteger(c))
                 {
-                    conoutf(CON_ERROR, "unknown command: %s", c);
-                    irc.speak("unknown command: %s", c);
+                    conoutf(CON_ERROR, "Unknown command: %s", c);
+                    irc.speak("Unknown command: %s", c);
                 }
                 setretval(newstring(c));
             }

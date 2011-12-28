@@ -1,36 +1,30 @@
 #include "game.h"
 #include <GeoIP.h>
 #include "sauerLua.h"
-#include "IRCbot.h"
 #include <stdio.h>
 #include <time.h>
+#include "IRCbot.h"
 
-//Server.cpp file of QServ 
+extern ENetAddress masteraddress; 
+extern ircBot irc;
 
-//Code entirely rearranged and organized 
+//QServ: fpsgame/server.cpp 
+
+//Code entirely rearranged and organized.
 //Built for speed to execute the most important
 //activity first, proceding with the
 //less important activities and messages. 
 
-extern ircBot irc;
-
-namespace game
-{
- void parseoptions(vector<const char *> &args)
- {
- loopv(args)
-#ifndef STANDALONE //Standalone QServ Server
- if(!game::clientoption(args[i]))
+namespace game {void parseoptions(vector<const char *> &args) {
+loopv(args)
+#ifndef STANDALONE 
+if(!game::clientoption(args[i]))
 #endif 
- if(!server::serveroption(args[i])) 
- conoutf(CON_ERROR, "Command not found: %s", args[i]); 
- }
-}
+if(!server::serveroption(args[i])) 
+conoutf(CON_ERROR, "Command not found: %s", args[i]); 
+}}
 
-extern ENetAddress masteraddress;
-
-namespace server
-{
+namespace server {
  struct server_entity //Server side version of "entity" type
  {
  int type;
@@ -155,8 +149,8 @@ int spreefrags;
  respawn();
  rockets.reset();
  grenades.reset();
- frags = flags = deaths = teamkills = shotdamage = damage = 0;
  maxhealth = 100;
+ frags = flags = deaths = teamkills = shotdamage = damage = 0;
  timeplayed = 0;
  effectiveness = 0;
  lastfragmillis = 0;
@@ -400,12 +394,13 @@ void setpushed()
  vector<clientinfo *> connects, clients, bots;
  vector<worldstate *> worldstates;
  bool reliablemessages = false;
-
- void clearbans()
- {
- irc.speak("All bans cleared");
- bannedips.shrink(0); //clear all bans 
- }
+    
+ void clearbans() {
+        bannedips.shrink(0);
+        out(ECHO_SERV, "Server bans \f0cleared");
+        out(ECHO_CONSOLE, "Server bans cleared");
+        out(ECHO_IRC, "All bans cleared");
+    }
     
  void banPlayer(int i)
  {
@@ -438,6 +433,7 @@ VAR(chainsawinsta, 0, 0, 1);
 VAR(enablestopservercmd, 0, 0, 1);
 VAR(conteleport, 0, 0, 1);
 SVAR(serverdesc, ""); 
+SVAR(tkmsg, "");
 SVAR(adminpass, "");
 SVAR(swaretext, "");
 SVAR(botname, "");
@@ -1562,7 +1558,7 @@ firstblood = false;
  if(demorecord) enddemorecord();
  if(best && (best->count > (force ? 1 : maxvotes/2)))
  {
- sendservmsg(force ? "Vote passed by \f4default" : "vote passed by \f0majority");
+ sendservmsg(force ? "Vote passed by \f4Default" : "Vote passed by \f0Majority");
  sendf(-1, 1, "risii", N_MAPCHANGE, best->map, best->mode, 1);
  changemap(best->map, best->mode);
  }
@@ -1579,7 +1575,7 @@ firstblood = false;
  stopdemo();
  if(hasnonlocalclients() && !mapreload)
  {
- defformatstring(msg)("Host forced \f2%s \f7on map \f1%s", modename(mode), map);
+ defformatstring(msg)("\f6Host \f7forced \f2%s \f7on map \f1%s", modename(mode), map);
  sendservmsg(msg);
  }
  sendf(-1, 1, "risii", N_MAPCHANGE, map, mode, 1);
@@ -1686,7 +1682,8 @@ sendservmsg(msg);
 if(getvar("tkpenalty")) { 
 if(actor->state.state==CS_ALIVE) {
 suicide(actor); 
-sendf(actor->clientnum, 1, "ris", N_SERVMSG, "\f1Notice: \f7You were suicided for fragging your teammate");}
+defformatstring(teamkillmsg)("\f1Notice: \f7%s", tkmsg);
+sendf(actor->clientnum, 1, "ris", N_SERVMSG, teamkillmsg);}
  }
 } 
 }
@@ -2292,7 +2289,6 @@ char *invisadmin()
              irc.speak("%s (%s) connected from an Unknown Location", colorname(ci), ci->ip);
          }else{
              out(ECHO_SERV, "\f0%s \f7connected from \f2%s", colorname(ci), ip);
-             out(ECHO_MASTER, "\f0%s \f7(\f4%s\f7) \f7connected from \f2%s", colorname(ci), ci->ip, ip);
              irc.speak("%s (%s) connected from %s", colorname(ci), ci->ip, ip);
          }
      }
@@ -2609,11 +2605,10 @@ if(textcmd("kick", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \
 if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: Ban a client permanently");break;}
 if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: Suicide another client");break;}
 if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: Claim invisible admin");break;}
-if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: Clear all server bans");break;}
 if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: Call all available operators");break;}
 if(textcmd("pausegame", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pausegame 1/0\nDescription: Pause the current game");break;}
 if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: Get this server's QServ version");break;}
-sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Type \f1#cmds (command) \f7for information on a command\n\f4Privileged Commands: \f7me, echo, time, stats, pm, givemaster, info, uptime, getversion, frag, killall, callops, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, clearb, stopserver, pausegame\nType \f2#cmds all \f7to return to this menu");
+sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Type \f1#cmds (command) \f7for information on a command\n\f4Privileged Commands: \f7me, echo, time, stats, pm, givemaster, info, uptime, getversion, frag, killall, callops, forceintermission, allowmaster, disallowmaster, ip, invadmin, kick, ban, stopserver, pausegame\nType \f2#cmds all \f7to return to this menu");
 break;
 
 //Public commands
@@ -2636,7 +2631,6 @@ break;
     if(textcmd("ban", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#ban (cn)\nDescription: Ban a client permanently");break;}
     if(textcmd("frag", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#frag (cn)\nDescription: Suicide another client");break;}
     if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#invadmin (adminpass)\nDescription: Claim invisible admin");break;}
-    if(textcmd("clearb", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#clearb\nDescription: Clear all server bans");break;}
     if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: Call all available operators");break;}
     if(textcmd("pausegame", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pausegame 1/0\nDescription: Pause the current game");break;}
     if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: Get this server's QServ version");break;}
@@ -2730,14 +2724,6 @@ defformatstring(s)("%s %s", callopmsg, operators); //callopmsg defined in server
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
 out(ECHO_CONSOLE, "Attention administrator(s), %s: %s (%s) needs assistance", operators, colorname(ci), ci->ip);
 out(ECHO_IRC, "Attention operators %s: %s needs assistance", operators, colorname(ci));
-break;
-
-}else if(textcmd("clearb", text) && ci->privilege){
- bannedips.shrink(0);
-out(ECHO_ALL, "All bans cleared");
-break;
-}else if(textcmd("clearb", text)){
- sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7insufficent permissions (master required)");
 break;
 
 }else if(textcmd(invisadmin(), text)){ 
@@ -3129,7 +3115,7 @@ mastermode = MM_OPEN;
  loopv(clients) allowedips.add(getclientip(clients[i]->clientnum));
  }
  //sendf(-1, 1, "rii", N_MASTERMODE, mastermode);
- out(ECHO_SERV, "\f0%s \f7set mastermode to \f1%s \f7(%d)", colorname(ci), mastermodename(mastermode), mastermode);
+ out(ECHO_SERV, "\f0%s \f7set mastermode to \f1%s \f7(\f4%d\f7)", colorname(ci), mastermodename(mastermode), mastermode);
 out(ECHO_IRC, "%s set mastermode to %s (%d)", colorname(ci), mastermodename(mastermode), mastermode);
 out(ECHO_CONSOLE, "%s set mastermode to %s (%d)", colorname(ci), mastermodename(mastermode), mastermode);
  }
@@ -3143,13 +3129,16 @@ out(ECHO_CONSOLE, "%s set mastermode to %s (%d)", colorname(ci), mastermodename(
  }
 
  case N_CLEARBANS:
- {
- if(ci->privilege || ci->local)
- {
- bannedips.shrink(0);
-out(ECHO_SERV, "\f0%s \f7cleared all bans", colorname(ci));
-out(ECHO_CONSOLE, "%s cleared all bans", colorname(ci));
- }
+ {  
+     if(ci->privilege || ci->local) {bannedips.shrink(0);
+         out(ECHO_SERV, "\f0%s \f7cleared all bans", colorname(ci));
+         //Handled seperately for coloring
+         out(ECHO_CONSOLE, "%s cleared all bans", colorname(ci));
+         out(ECHO_IRC, "All bans cleared");
+     }
+     else {
+         sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions to clear server bans");
+     }
  break;
  }
 

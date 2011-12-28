@@ -306,7 +306,7 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
     else sendclientpacket(packet, chan);
 #endif
 }
-const char *disc_reasons[] = { "normal", "end of packet error", "client number error", "temporary ban", "tag type error", "client is banned", "server is in private mode", "server is full", "connection timed out", "spam", "banned"};
+const char *disc_reasons[] = { "(normal)", "end of packet error", "client number error", "temporarily banned", "tag type (client error)", "banned", "server is in private mode", "server is full", "connection timed out", "kicked for spam", "banned"};
 void disconnect_client(int n, int reason)
 {
     if(clients[n]->type!=ST_TCPIP) return;
@@ -316,7 +316,7 @@ void disconnect_client(int n, int reason)
     clients[n]->peer->data = NULL;
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
-    defformatstring(s)("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
+    defformatstring(s)("client (%s) disconnected: %s", clients[n]->hostname, disc_reasons[reason]);
     puts(s);
     server::sendservmsg(s);
 
