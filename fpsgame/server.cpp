@@ -2952,7 +2952,7 @@ break;
  break;
 
  }else{
- sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Unknown command, use \f1#cmds \f7for a list");
+ sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid command, use \f1#cmds \f7for a list");
  break;
 }
  }
@@ -2970,7 +2970,7 @@ QUEUE_STR(text);
 case N_SAYTEAM:
  {
  getstring(text, p);
-out(ECHO_CONSOLE, "%s [team]: %s", newstring(ci->name), newstring(text));
+ out(ECHO_CONSOLE, "%s [team]: %s", newstring(ci->name), newstring(text));
  if(!ci || !cq || (ci->state.state==CS_SPECTATOR && !ci->local && !ci->privilege) || !m_teammode || !cq->team[0]) break;
  loopv(clients)
  {
@@ -3008,6 +3008,7 @@ out(ECHO_CONSOLE, "%s [team]: %s", newstring(ci->name), newstring(text));
  copystring(ci->team, text);
  aiman::changeteam(ci);
  sendf(-1, 1, "riisi", N_SETTEAM, sender, ci->team, ci->state.state==CS_SPECTATOR ? -1 : 0);
+ out(ECHO_CONSOLE, "%s switched to team %s", colorname(ci), ci->team);
  }
  break;
  }
