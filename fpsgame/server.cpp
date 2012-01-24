@@ -1464,11 +1464,11 @@ irc.speak(msg_irc);
  int servuptime = 0;
  void changemap(const char *s, int mode)
  {
-out(ECHO_SERV, "Loaded map: \f1%s", s);
-out(ECHO_CONSOLE, "Loaded map: %s", s);
-out(ECHO_IRC, "Loaded map: \x02%s\x02", s);
- pausegame(false);
+ out(ECHO_SERV, "Loaded map: \f1%s", s);
+ out(ECHO_CONSOLE, "Loaded map: %s", s);
+ out(ECHO_IRC, "Loaded map: \x02%s\x02", s);
  stopdemo();
+ pausegame(false);
  if(smode) smode->reset(false);
  aiman::clearai();
  mapreload = false;
@@ -1556,9 +1556,9 @@ firstblood = false;
  if(demorecord) enddemorecord();
  if(best && (best->count > (force ? 1 : maxvotes/2)))
  {
- changemap(best->map, best->mode);
- sendf(-1, 1, "risii", N_MAPCHANGE, best->map, best->mode, 1);
  sendservmsg(force ? "Vote passed by \f4Default" : "Vote passed by \f0Majority");
+ sendf(-1, 1, "risii", N_MAPCHANGE, best->map, best->mode, 1);
+ changemap(best->map, best->mode);
  }
  else
  {
