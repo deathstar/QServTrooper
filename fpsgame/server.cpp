@@ -523,8 +523,8 @@ void startserv() //start server
 {
 char *servername = serverdesc;
 char *passwrd = adminpass; 
-if(!strcmp(servername, "QServ Unnamed")) {printf("\33[31mYour server is unnamed, please configure it in \"server-init.cfg\"\33[0m\n");}
-if(!strcmp(passwrd, "qserv")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
+if(!strcmp(servername, "{QServ Pro}")) {printf("\33[31mYour server name is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
+if(!strcmp(passwrd, "temp")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
 printf("\33[34m\"%s\" with admin password \"%s\" started on port %i\33[0m\n\n", servername, passwrd, getvar("serverport"));
 time_t rawtime;
 struct tm * timeinfo;
@@ -826,10 +826,10 @@ bad=false;
  time_t t = time(NULL);
  char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
  while(trim>timestr && isspace(*--trim)) *trim = '\0';
- formatstring(d.info)("%s: %s, %s, %.2f%s", timestr, modename(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
- defformatstring(msg)("Demo \"%s\" succesfully recorded", d.info);
- sendservmsg(msg);
  d.data = new uchar[len];
+     formatstring(d.info)("%s: %s, %s, %.2f%s", timestr, modename(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+     defformatstring(msg)("Demo \"%s\" succesfully recorded", d.info);
+     sendservmsg(msg);
  d.len = len;
  demotmp->seek(0, SEEK_SET);
  demotmp->read(d.data, len);
@@ -880,7 +880,7 @@ bad=false;
  {
  loopv(demos) delete[] demos[i].data;
  demos.shrink(0);
- sendservmsg("Deleted all server-stored demos...");
+ sendservmsg("\f1Notice: \f7All demos were deleted from the server");
  }
  else if(demos.inrange(n-1))
  {
@@ -1037,7 +1037,7 @@ bad=false;
  if(haspass) ci->privilege = PRIV_ADMIN;
  else if(!authname && !(mastermask&MM_AUTOAPPROVE) && !ci->privilege && !ci->local)
  {
- sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Master (\"/setmaster\") is currently disabled");
+ sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Unable to grant \f0master \f7(It is currently disabled) \n\f5Authkey \f7holders, use \f1\"/auth\" \f7to obtain master.");
  return;
  }
  else
@@ -1060,8 +1060,8 @@ bad=false;
  allowedips.shrink(0);
  string msg;
 string msg_irc;
-if(val && authname) formatstring(msg)("\f0%s \f7claimed \f1%s \f7as '\fs\f5%s\fr'", colorname(ci), name, authname); //auth claim admin
- else formatstring(msg)("\f0%s \f7%s \f1%s", colorname(ci), val ? "claimed" : "relinquished", name);
+if(val && authname) formatstring(msg)("\f0%s \f7claimed \f1%s \f7as '\fs\f5%s\fr'", colorname(ci), name, authname); //auth setmaster
+ else formatstring(msg)("\f0%s \f7%s \f4%s", colorname(ci), val ? "claimed" : "relinquished", name);
  sendservmsg(msg);
 formatstring(msg_irc)("%s %s %s", colorname(ci), val ? "claimed" : "relinquished", name);
 irc.speak(msg_irc);
@@ -1467,12 +1467,10 @@ irc.speak(msg_irc);
 out(ECHO_SERV, "Loaded map: \f1%s", s);
 out(ECHO_CONSOLE, "Loaded map: %s", s);
 out(ECHO_IRC, "Loaded map: \x02%s\x02", s);
-
- stopdemo();
  pausegame(false);
+ stopdemo();
  if(smode) smode->reset(false);
  aiman::clearai();
-
  mapreload = false;
  gamemode = mode;
  servuptime=(gamemillis/1000)+servuptime;
@@ -1558,9 +1556,9 @@ firstblood = false;
  if(demorecord) enddemorecord();
  if(best && (best->count > (force ? 1 : maxvotes/2)))
  {
- sendservmsg(force ? "Vote passed by \f4Default" : "Vote passed by \f0Majority");
- sendf(-1, 1, "risii", N_MAPCHANGE, best->map, best->mode, 1);
  changemap(best->map, best->mode);
+ sendf(-1, 1, "risii", N_MAPCHANGE, best->map, best->mode, 1);
+ sendservmsg(force ? "Vote passed by \f4Default" : "Vote passed by \f0Majority");
  }
  else
  {
@@ -1594,7 +1592,7 @@ firstblood = false;
  if(demorecord) enddemorecord();
  if((!ci->local || hasnonlocalclients()) && !mapreload)
  {
- defformatstring(msg)("%s forced \f2%s \f7on map \f1%s", ci->privilege && mastermode>=MM_VETO ? privname(ci->privilege) : "Host", modename(ci->modevote), ci->mapvote);
+ defformatstring(msg)("%s \f7forced \f2%s \f7on map \f1%s", ci->privilege && mastermode>=MM_VETO ? privname(ci->privilege) : "\f6Host", modename(ci->modevote), ci->mapvote);
  sendservmsg(msg);
  }
  sendf(-1, 1, "risii", N_MAPCHANGE, ci->mapvote, ci->modevote, 1);
@@ -1675,7 +1673,7 @@ ICOMMAND(addmultikillmsg, "is", (int *frags, char *msg), { multikillmsg m; m.fra
 {
  actor->state.teamkills++;
  target->state.deaths++;
-if(actor == target) {} //if the teamkiller is the target, do nothing
+if(actor == target) {} //suicide is not a teamkill 
 else {
  defformatstring(msg)("\f0%s \f7fragged his teammate \f6%s\f7", colorname(actor), colorname(target));
 sendservmsg(msg);
@@ -2012,9 +2010,9 @@ if(actor->state.spreefrags == spreemessages[i].frags) out(ECHO_SERV, "\f0%s \f7%
 
  void noclients()
  {
- //bannedips.shrink(0); //delete banned IP's when server empties (disabled)
  aiman::clearai();
-printf("\33[33mServer has emptied\33[0m\n");
+ printf("\33[33mServer has emptied\33[0m\n");
+ //bannedips.shrink(0); //Don't delete banned IP's
  }
 
  void localconnect(int n)
@@ -2151,7 +2149,6 @@ savescore(ci);
  clientinfo *ci = findauth(id);
  if(!ci) return;
  ci->authreq = 0;
-out(ECHO_CONSOLE, "Auth failed for client %s", colorname(ci));
  }
 
  void authsucceeded(uint id)
