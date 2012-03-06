@@ -429,6 +429,7 @@ VAR(chainsawinsta, 0, 0, 1);
 VAR(enablestopservercmd, 0, 0, 1);
 VAR(conteleport, 0, 0, 1);
 SVAR(serverdesc, ""); 
+SVAR(welcomemsg, "");
 SVAR(tkmsg, "");
 SVAR(adminpass, "");
 SVAR(swaretext, "");
@@ -441,7 +442,7 @@ SVAR(callopmsg, "");
 SVAR(spreesuicidemsg, "");
 SVAR(spreefinmsg, "");
 SVAR(serverpass, "");
- VARF(publicserver, 0, 0, 2, {
+VARF(publicserver, 0, 0, 2, {
 switch(publicserver)
 {
 case 0: default: mastermask = MM_PRIVSERV; break;
@@ -2300,12 +2301,12 @@ out(ECHO_CONSOLE, "%s uploaded map \"%s\" to the server", colorname(ci), smapnam
      aiman::addclient(ci);
      sendinitclient(ci);
      sendwelcome(ci);
-     char *servername = serverdesc; 
-     defformatstring(l)("\f4******************************\n\f7Welcome to %s\f7, \f0%s\f7! \n\f4****************************** \n\f7Use \f6\"#cmds\" \f7for a list of commands.", servername, colorname(ci)); //welcome message
-     sendf(sender, 1, "ris", N_SERVMSG, l);
-     out(ECHO_CONSOLE, "%s (%s) connected", ci->name, ci->ip);
-     if(m_demo) setupdemoplayback();
      luaCallback(LUAEVENT_CONNECTED, ci->clientnum);
+     out(ECHO_CONSOLE, "%s (%s) connected", ci->name, ci->ip);
+     char *servername = serverdesc; 
+     defformatstring(l)("\f4*****************************************\n\f4Welcome to %s\f4, \f0%s\f4! \n%s \n\f4***************************************** \n\f4Use \f6\"#cmds\" \f4to see all available commands.", servername, colorname(ci), welcomemsg);
+     sendf(sender, 1, "ris", N_SERVMSG, l);
+     if(m_demo) setupdemoplayback();
  }
  }
  else if(chan==2)
