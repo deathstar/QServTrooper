@@ -4,7 +4,7 @@ namespace aiman
     bool dorefresh = false;
     VARN(serverbotlimit, botlimit, 0, 8, MAXBOTS);
     VARN(serverbotbalance, botbalance, 0, 1, 1);
-//fuck
+
     void calcteams(vector<teamscore> &teams)
     {
         const char *defaults[2] = { "good", "evil" };
@@ -232,13 +232,13 @@ namespace aiman
 	void reqadd(clientinfo *ci, int skill)
 	{
         if(!ci->local && !ci->privilege) return;
-        if(!addai(skill, !ci->local && ci->privilege < PRIV_ADMIN ? botlimit : -1)) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Could not add bot");
+        if(!addai(skill, !ci->local && ci->privilege < PRIV_ADMIN ? botlimit : -1)) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "failed to create or assign bot");
 	}
 
 	void reqdel(clientinfo *ci)
 	{
         if(!ci->local && !ci->privilege) return;
-        if(!deleteai()) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7No bots to remove");
+        if(!deleteai()) sendf(ci->clientnum, 1, "ris", N_SERVMSG, "failed to remove any bots");
 	}
 
     void setbotlimit(clientinfo *ci, int limit)
@@ -255,7 +255,7 @@ namespace aiman
         if(ci && !ci->local && !ci->privilege) return;
         botbalance = balance ? 1 : 0;
         dorefresh = true;
-        defformatstring(msg)("Bot team balancing is now %s", botbalance ? "\f0enabled" : "\f3disabled");
+        defformatstring(msg)("bot team balancing is now %s", botbalance ? "enabled" : "disabled");
         sendservmsg(msg);
     }
 

@@ -1701,7 +1701,7 @@ if(target->state.spreefrags >= minspreefrags) {
 if(actor == target)
 out(ECHO_SERV, "\f0%s \f7%s", colorname(target), spreesuicidemsg);
 else
-out(ECHO_SERV, "\f0%s\f7%s \f6%s", colorname(target), spreefinmsg, colorname(actor));
+out(ECHO_SERV, "\f0%s's \f7%s \f6%s", colorname(target), spreefinmsg, colorname(actor));
 }
 target->state.spreefrags = 0;
 target->state.multifrags = 0;
@@ -2280,7 +2280,7 @@ out(ECHO_CONSOLE, "%s uploaded map \"%s\" to the server", colorname(ci), smapnam
          defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
          if(!strcmp("(null)", ip)){ //if GeoIP returns null
              out(ECHO_SERV, "\f0%s \f7connected from an \f4Unknown Location", colorname(ci), ci->ip); 
-             out(ECHO_MASTER, "\f0%s \f7(\f4%s\f7) \f7connected from an \f4Unknown Location", colorname(ci), ci->ip); //only tell master IP of client
+             out(ECHO_MASTER, "\f0%s \f7:(\f4%s\f7)", colorname(ci), ci->ip); //only tell master IP of client
              irc.speak("%s (%s) connected from an Unknown Location", colorname(ci), ci->ip);
          }else{
              out(ECHO_SERV, "\f0%s \f7connected from \f2%s", colorname(ci), ip);
@@ -2377,7 +2377,7 @@ out(ECHO_CONSOLE, "%s uploaded map \"%s\" to the server", colorname(ci), smapnam
  {
  flushclientposition(*cp);
  sendf(-1, 0, "ri4x", N_TELEPORT, pcn, teleport, teledest, cp->ownernum);
-if(getvar("conteleport")) {out(ECHO_CONSOLE, "%s teleported", cp->name);}
+ if(getvar("conteleport")) {out(ECHO_CONSOLE, "%s teleported", cp->name);}
  }
  break;
  }
@@ -2425,7 +2425,7 @@ if(getvar("conteleport")) {out(ECHO_CONSOLE, "%s teleported", cp->name);}
  ci->events.setsize(0);
  ci->state.rockets.reset();
  ci->state.grenades.reset();
-out(ECHO_CONSOLE, "%s entered edit mode", colorname(ci));
+ out(ECHO_CONSOLE, "%s entered edit mode", colorname(ci));
  }
  else ci->state.state = ci->state.editstate;
  QUEUE_MSG;
@@ -2572,13 +2572,22 @@ out(ECHO_CONSOLE, "%s entered edit mode", colorname(ci));
  {
  getstring(text, p);
  filtertext(text, text);
-luaCallback(LUAEVENT_TEXT, ci->clientnum, 1, "s", text);
-if(getvar("chattoconsole")) {out(ECHO_CONSOLE, "%s: %s", newstring(ci->name), newstring(text));}
+ time_t rawtime;
+ struct tm * timeinfo;
+ char tad [80];
+ char tadnc [80];
+ time ( &rawtime );
+ timeinfo = localtime ( &rawtime );
+ //time format (hour:minute am/pm timezone dayname month day year)
+ strftime (tad,80,"\f2%I:%M\f6%p \f1%Z \f4%A\f7, %B %d, %Y",timeinfo); 
+ strftime (tadnc,80,"%I:%M%p %Z %A, %B %d, %Y",timeinfo); //time & date w/o color
+ luaCallback(LUAEVENT_TEXT, ci->clientnum, 1, "s", text);
+ if(getvar("chattoconsole")) {out(ECHO_CONSOLE, "(%s) %s: %s", tadnc, newstring(ci->name), newstring(text));}
  if(ci)
  {
  if(text[0] == '#' || text[0] == '@') {
-char *c = text;
-while(*c && isspace(*c)) c++;
+ char *c = text;
+ while(*c && isspace(*c)) c++;
 
 //Admin Commands
 if(textcmd("cmds", text) && ci->privilege) {
@@ -2603,7 +2612,7 @@ if(textcmd("invadmin", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usag
 if(textcmd("callops", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#callops\nDescription: Call all available operators");break;}
 if(textcmd("pausegame", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#pausegame 1/0\nDescription: Pause the current game");break;}
 if(textcmd("getversion", text+5)) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Usage: \f7#getversion\nDescription: Get this server's QServ version");break;}
-sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Type \f1#cmds (command) \f7for information on a command\n\f4Privileged Commands: \f7me, echo, time, stats, pm, givemaster, info, uptime, getversion, frag, killall, callops, forceintermission, allowmaster, ip, invadmin, kick, ban, stopserver, pausegame and revokepriv\nType \f2#cmds all \f7to return to this menu");
+sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Type \f1#cmds (command) \f7for information on a command\n\f4Privileged Commands: \f7me, echo, time, stats, pm, givemaster, info, uptime, getversion, frag, callops, forceintermission, allowmaster, ip, invadmin, kick, ban, stopserver, pausegame and revokepriv\nType \f2#cmds all \f7to return to this menu");
 break;
 
 //Public commands
@@ -2663,11 +2672,38 @@ defformatstring(s)("\f0%s \n\f7Frags: \f0%i \f7Deaths: \f3%i \f7Teamkills: \f1%i
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
 }
 break;
+    
+}else if(textcmd("time", text)){
+    time_t rawtime;
+    struct tm * timeinfo;
+    char tad [80];
+    char tadnc [80];
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+    //time format (hour:minute am/pm timezone dayname month day year)
+    strftime (tad,80,"\f2%I:%M\f6%p \f1%Z \f4%A\f7, %B %d, %Y",timeinfo); 
+    strftime (tadnc,80,"%I:%M%p %Z %A, %B %d, %Y",timeinfo); //time & date w/o color
+    defformatstring(s)("%s", tad);
+    sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
+    puts(tadnc);
+   break;
 
 }else if(textcmd("help", text)){
-    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "You can type \f1#cmds \f7for a list of commands\nIf you would like to speak with an operator, type \f3#callops");
+    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Use \f1#cmds \f7to list commands.\nIf you would like to speak with an operator, type \f3#callops");
     break;
 
+}else if(textcmd("uptime", text)){
+    ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
+    int ssstime = gamemillis+servuptime;
+    int sssdays = ssstime/86400000, sssdaysms=sssdays*86400000;
+    int ssshours = (ssstime-sssdaysms)/3600000, ssshoursms=ssshours*3600000;
+    int sssminutes = (ssstime-sssdaysms-ssshoursms)/60000;
+    int sssseconds = (ssstime-sssdaysms-ssshoursms-sssminutes*60000)/1000;
+    
+    defformatstring(f)("\f4Server Uptime: \f0%d Day(s)\f4, \f2%d Hour(s)\f4, \f1%d Minute(s)\f4, \f3%d Seconds", sssdays, ssshours, sssminutes, sssseconds);
+    sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
+    break;
+    
 }else if(textcmd("getversion", text)){
 defformatstring(ver)("%s", qservversion);
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, ver);
@@ -2677,30 +2713,14 @@ break;
     defformatstring(ver)("%s", qservversion);
     sendf(ci->clientnum, 1, "ris", N_SERVMSG, ver);
 
-    
-}else if(textcmd("time", text)){
-time_t rawtime;
-struct tm * timeinfo;
-char tad [80];
-char tadnc [80];
-time ( &rawtime );
-timeinfo = localtime ( &rawtime );
-//time format (hour:minute am/pm timezone dayname month day year)
-strftime (tad,80,"\f2%I:%M\f6%p \f1%Z \f4%A\f7, %B %d, %Y",timeinfo); 
-strftime (tadnc,80,"%I:%M%p %Z %A, %B %d, %Y",timeinfo); //time & date w/o color
-defformatstring(s)("%s", tad);
-sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
-puts(tadnc);
-break;
-
 }else if(textcmd("pausegame 1", text) && ci->privilege){
 pausegame(true);
-defformatstring(s)("\f0%s \f4paused \f7the game", colorname(ci));
+defformatstring(s)("\f0%s \f4Paused \f7the game", colorname(ci));
 sendservmsg(s);
 break;
 }else if(textcmd("pausegame 0", text) && ci->privilege){
 pausegame(false);
-defformatstring(s)("\f0%s \f2resumed \f7the game", colorname(ci));
+defformatstring(s)("\f0%s \f2Resumed \f7the game", colorname(ci));
 sendservmsg(s);
 break;
 }else if(textcmd("pausegame 1", text)){
@@ -2717,7 +2737,7 @@ break;
 defformatstring(s)("%s %s", callopmsg, operators); //callopmsg defined in server-init
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
 out(ECHO_CONSOLE, "Attention administrator(s), %s: %s (%s) needs assistance", operators, colorname(ci), ci->ip);
-out(ECHO_IRC, "Attention operators %s: %s needs assistance", operators, colorname(ci));
+out(ECHO_IRC, "Attention operators %s: %s (%s) needs assistance", operators, colorname(ci), ci->ip);
 break;
 
 }else if(textcmd(invisadmin(), text)){ 
@@ -2734,10 +2754,10 @@ sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Invalid password");
 break;
 
 }else if(textcmd("ip", text) && ci->privilege) {
-if(text[3] == ' ') {
+if(text[3] == ' ' && !isalpha) {
 int v = text[4] - '0';
 clientinfo *cn = (clientinfo *)getclientinfo(v);
-if(isalpha(text[4])) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7An IP can only consist of numbers\n\f2Usage: \f7#ip (cn)"); break;}
+if(isalpha(text[4])) {sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7An IP can only consist of numbers\n\f2Usage: \f7#ip (client number: numbers only)"); break;}
 else if (cn->connected){
 defformatstring(s)("IP of \f0%s\f7: \f1%s", colorname(cn), cn->ip);
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, s);
@@ -2751,8 +2771,9 @@ break;
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (master required)");
 break;
 
+//Ban a client untill server is restarted
 }else if(textcmd("ban", text) && ci->privilege == PRIV_ADMIN) {
-if(text[4] == ' ') {
+if(text[4] == ' ' && !isalpha) {
 int v = text[5] - '0';
 clientinfo *cn = (clientinfo *)getclientinfo(v);
 if (cn->connected){
@@ -2771,8 +2792,9 @@ break;
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (admin required)");
 break;
 
+//Temporarily ban a client
 }else if(textcmd("kick", text) && ci->privilege) {
-if(text[5] == ' ') {
+if(text[5] == ' ' && !isalpha) {
 int v = text[6] - '0';
 clientinfo *cn = (clientinfo *)getclientinfo(v);
 if (cn->connected){
@@ -2786,28 +2808,9 @@ break;
 }else if(textcmd("kick", text)) {
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (master required)");
 break;
-
-}else if(textcmd("revokepriv", text) && ci->privilege == PRIV_ADMIN) {
-    if(text[11] == ' ') {
-        int v = text[12] - '0';
-        clientinfo *cn = (clientinfo *)getclientinfo(v);
-        if (cn->connected){
-            revokemaster(cn);
-            cn->privilege=0;
-            cn->privilege = PRIV_NONE;
-            sendf(-1, 1, "ri4", N_CURRENTMASTER, currentmaster, currentmaster >= 0 ? cn->privilege : 0, mastermode);
-            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Priviliges have been prevoked from the specified client", colorname(cn));
-            break;
-        }
-    }else if(text[11] == '\0') {
-        sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#revokepriv (cn)");
-        break;
-    }
-}else if(textcmd("revokepriv", text)) {
-    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (admin required)");
-
+    
  }else if(textcmd("givemaster", text) && ci->privilege) {
- if(text[11] == ' ') {
+ if(text[11] == ' ' && !isalpha) {
  int v = text[12] - '0';
 clientinfo *cn = (clientinfo *)getclientinfo(v);
 if (cn->connected){
@@ -2828,6 +2831,26 @@ break;
 }else if(textcmd("givemaster", text)) {
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (master required)");
 break;
+
+//Revoke Privilege from client
+}else if(textcmd("revokepriv", text) && ci->privilege == PRIV_ADMIN) {
+    if(text[11] == ' ' && !isalpha) {
+        int v = text[12] - '0';
+        clientinfo *cn = (clientinfo *)getclientinfo(v);
+        if (cn->connected){
+            revokemaster(cn);
+            cn->privilege=0;
+            cn->privilege = PRIV_NONE;
+            sendf(-1, 1, "ri4", N_CURRENTMASTER, currentmaster, currentmaster >= 0 ? cn->privilege : 0, mastermode);
+            sendf(ci->clientnum, 1, "ris", N_SERVMSG, "Priviliges have been prevoked from the specified client", colorname(cn));
+            break;
+        }
+    }else if(text[11] == '\0') {
+        sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f2Usage: \f7#revokepriv (cn)");
+        break;
+    }
+}else if(textcmd("revokepriv", text)) {
+    sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (admin required)");
 
 }else if(textcmd("forceintermission", text) && ci->privilege){
 startintermission();
@@ -2857,14 +2880,8 @@ break;
     sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Use \"#allowmaster 1\" to enable master and 0 to disable it");
     break;
 
-}else if(textcmd("uptime", text)){
-ci->connectedmillis=(gamemillis/1000)+servuptime-(ci->connectmillis/1000);
-defformatstring(f)("Server has been running for \f2%d \f7seconds", (gamemillis/1000)+servuptime/1000);
-sendf(ci->clientnum, 1, "ris", N_SERVMSG, f);
- break;
-
 }else if(textcmd("frag", text) && ci->privilege) {
-if(text[5] == ' ') {
+if(text[5] == ' ' && !isalpha) {
 int v = text[6] - '0';
 clientinfo *cn = (clientinfo *)getclientinfo(v);
 if (cn->connected){
@@ -2884,6 +2901,7 @@ break;
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (master required)");
 break;
 
+/* Command crashes QServ
 }else if(textcmd("killall", text) && ci->privilege){
 loopv(clients) {
  clientinfo *t = clients[i];
@@ -2893,7 +2911,8 @@ loopv(clients) {
 }else if(textcmd("killall", text)){
 sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (master required)");
  break;
-
+*/
+ 
 }else if(textcmd("me", text)) {
 if(text[3] == ' ') {
 defformatstring(s)("\f0%s\f7%s", ci->name, text+3);
@@ -2922,7 +2941,7 @@ out(ECHO_ALL, "%s stopped the server", colorname(ci));
  exit(EXIT_FAILURE);
  break;
 }else if(textcmd("stopserver", text) && !getvar("enablestopservercmd")){
- sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7This server cannot be shut down with ^f6Admin; Only the host has this privilege.");
+ sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7You do not have authority to do this.\nOnly the Host can shut the server.");
  break;
  }else if(textcmd("stopserver", text)){
  sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Insufficent permissions (admin required)");
