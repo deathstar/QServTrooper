@@ -1,5 +1,4 @@
-// engine/server.cpp for QServ: little more than enhanced multicaster
-// runs dedicated or as client coroutine
+//engine/server.cpp for QServ: little more than enhanced multicaster, runs dedicated or as client coroutine
   
 #include "engine.h"
 #include <pthread.h>
@@ -7,9 +6,9 @@
 #include "sauerLua.h"
 
 VAR(enableirc, 0, 0, 1);
-
 extern ircBot irc;
 luaVM luavm;
+
 #ifdef STANDALONE
 void fatal(const char *s, ...)
 {
@@ -306,7 +305,7 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
     else sendclientpacket(packet, chan);
 #endif
 }
-const char *disc_reasons[] = { "(normal)", "end of packet error", "client number error", "temporarily banned", "tag type (client error)", "banned", "server is in private mode", "server is full", "connection timed out", "kicked for spam", "banned"};
+const char *disc_reasons[] = { "normal", "end of packet error", "CN error", "temporarily banned", "tag type (client error)", "banned", "server is in private mode", "server full", "connection timed out", "kicked for spam", "banned"};
 void disconnect_client(int n, int reason)
 {
     if(clients[n]->type!=ST_TCPIP) return;
@@ -447,7 +446,6 @@ bool requestmasterf(const char *fmt, ...)
     defvformatstring(req, fmt, fmt);
     return requestmaster(req);
 }
-
 void processmasterinput()
 {
     if(masterinpos >= masterin.length()) return;
@@ -463,9 +461,9 @@ void processmasterinput()
         while(args < end && isspace(*args)) args++;
 
         if(!strncmp(input, "failreg", cmdlen))
-            conoutf(CON_ERROR, "\nMaster server registration to %s failed (%s)\n", mastername, args);
+            conoutf(CON_ERROR, "\nError: Master server registration to %s: %s\n", mastername, args);
         else if(!strncmp(input, "succreg", cmdlen))
-        	conoutf("Successfully registered to master server: %s", mastername);
+        	conoutf("Successfully registered to Masterserver: %s", mastername);
         else server::processmasterinput(input, cmdlen, args);
 
         masterinpos = end - masterin.getbuf();
@@ -742,7 +740,7 @@ bool setuplistenserver(bool dedicated)
         else serveraddress.host = address.host;
     }
     serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, serveruprate);
-    if(!serverhost) return servererror(dedicated, "\f3Error: \f7A server is already running on the same port");
+    if(!serverhost) return servererror(dedicated, "\f3Error: \f7Could not create server host");
     loopi(maxclients)serverhost->peers[i].data = NULL;
     address.port = server::serverinfoport(serverport > 0 ? serverport : -1);
     pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
@@ -760,7 +758,7 @@ bool setuplistenserver(bool dedicated)
         enet_socket_destroy(lansock);
         lansock = ENET_SOCKET_NULL;
     }
-    if(lansock == ENET_SOCKET_NULL) conoutf(CON_WARN, "WARNING: could not create LAN server info socket");
+    if(lansock == ENET_SOCKET_NULL) conoutf(CON_WARN, "WARNING: Could not create LAN server info socket");
     else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
     return true;
 }
@@ -778,7 +776,7 @@ void initserver(bool listen, bool dedicated)
         updatemasterserver();
         if(dedicated) rundedicatedserver(); // never returns
 #ifndef STANDALONE
-        else conoutf("listen server started");
+        else conoutf("Listen server started");
 #endif
     }
 }
@@ -800,13 +798,13 @@ COMMAND(startlistenserver, "i");
 
 void stoplistenserver()
 {
-    if(!serverhost) { conoutf(CON_ERROR, "listen server is not running"); return; }
+    if(!serverhost) { conoutf(CON_ERROR, "\f3Error: \f7Listen server is not running"); return; }
 
     kicknonlocalclients();
     enet_host_flush(serverhost);
     cleanupserver();
 
-    conoutf("listen server stopped");
+    conoutf("Listen server stopped");
 }
 COMMAND(stoplistenserver, "");
 #endif
@@ -849,7 +847,7 @@ int main(int argc, char* argv[])
     iirc = 2;
 
     void *ServerInit(void *);
-    if(enet_initialize()<0) fatal("Unable to initialise network module");
+    if(enet_initialize()<0) fatal("\f3Fatal Error: \f7Unable to initialise network module");
     atexit(enet_deinitialize);
     enet_time_set(0);
     for(int i = 1; i<argc; i++) if(argv[i][0]!='-' || !serveroption(argv[i])) gameargs.add(argv[i]);

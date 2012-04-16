@@ -188,7 +188,7 @@ int spreefrags;
  damage = gs.damage;
  timeplayed = gs.timeplayed;
  effectiveness = gs.effectiveness;
- out(ECHO_CONSOLE, "Client score saved");
+ out(ECHO_CONSOLE, "Client statistics saved...");
  }
 
  void restore(gamestate &gs)
@@ -521,16 +521,16 @@ void startserv() //start server
 {
 char *servername = serverdesc;
 char *passwrd = adminpass; 
-if(!strcmp(servername, "QServ Pro")) {printf("\33[31mYour server name is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
-if(!strcmp(passwrd, "temp")) {printf("\33[31mYour admin password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
-printf("\33[34m\"%s\" with admin password \"%s\" started on port %i\33[0m\n\n", servername, passwrd, getvar("serverport"));
+if(!strcmp(servername, "QServ 10 Viper")) {printf("\33[31mYour Servername is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
+if(!strcmp(passwrd, "changeme")) {printf("\33[31mYour Admin Password is defualt, please configure it in \"server-init.cfg\"\33[0m\n");}
+printf("\33[34m\"%s\" with Admin Password \"%s\" started. Listening on port %i\33[0m\n\n", servername, passwrd, getvar("serverport"));
 time_t rawtime;
 struct tm * timeinfo;
 char tad [80];
 time ( &rawtime );
 timeinfo = localtime ( &rawtime );
 //time format (hour:minute am/pm timezone dayname month day year)
-strftime (tad,80,"%I:%M%p %Z %A, %B %d, %Y ",timeinfo); 
+strftime (tad,80,"Server started at %I:%M%p %Z %A, %B %d, %Y",timeinfo); 
 puts(tad); 
 printf("\33[31mCtrl-C to stop server\33[0m\n");
 
@@ -923,7 +923,7 @@ bad=false;
  else
  {
  lilswap(&hdr.version, 2);
- if(hdr.version!=DEMO_VERSION) formatstring(msg)("Demo \"%s\" requires an %s version of Cube 2: Sauerbraten", file, hdr.version<DEMO_VERSION ? "older" : "newer");
+ if(hdr.version!=DEMO_VERSION) formatstring(msg)("Demo \"%s\" requires an %s ve=rsion of Cube 2: Sauerbraten", file, hdr.version<DEMO_VERSION ? "older" : "newer");
  else if(hdr.protocol!=PROTOCOL_VERSION) formatstring(msg)("Demo \"%s\" requires an %s version of Cube 2: Sauerbraten", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
  }
  if(msg[0])
@@ -1035,7 +1035,7 @@ bad=false;
  if(haspass) ci->privilege = PRIV_ADMIN;
  else if(!authname && !(mastermask&MM_AUTOAPPROVE) && !ci->privilege && !ci->local)
  {
- sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Unable to grant \f0master \f7(It is currently disabled) \n\f5Authkey \f7holders, use \f1\"/auth\" \f7to obtain master.");
+ sendf(ci->clientnum, 1, "ris", N_SERVMSG, "\f3Error: \f7Unable to grant \f0Master \f7(It is currently disabled) \n\f5Authkey \f7holders, use \f1\"/auth\" \f7to obtain master.");
  return;
  }
  else
@@ -1598,9 +1598,9 @@ firstblood = false;
  }
  else
  {
- defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2\"/mode map\" \f7to vote)", colorname(ci), modename(reqmode), map, map);
+ defformatstring(msg)("\f0%s \f7votes for a \f2%s \f7on map \f1%s \f7(use \f2\"/mode map\" \f7to vote)", colorname(ci),modename(reqmode), map, map);
  sendservmsg(msg);
-out(ECHO_IRC, "%s votes for a %s on map %s", colorname(ci), modename(reqmode), map);
+ out(ECHO_IRC, "%s votes for a %s on map %s", colorname(ci), modename(reqmode), map);
  checkvotes();
  }
  }
@@ -1678,7 +1678,7 @@ sendservmsg(msg);
 if(getvar("tkpenalty")) { 
 if(actor->state.state==CS_ALIVE) {
 suicide(actor); 
-defformatstring(teamkillmsg)("\f1Notice: \f7%s", tkmsg);
+defformatstring(teamkillmsg)("\f1Notice: \f7%s", tkmsg); //Teamkill message
 sendf(actor->clientnum, 1, "ris", N_SERVMSG, teamkillmsg);}
  }
 } 
@@ -1713,7 +1713,6 @@ if(actor->state.spreefrags == spreemessages[i].frags) out(ECHO_SERV, "\f0%s \f7%
  if(smode) smode->died(target, actor);
  ts.state = CS_DEAD;
  ts.lastdeath = gamemillis;
- //ts.respawn(); don't issue respawn yet until DEATHMILLIS has elapsed
  }
 }
  void explodeevent::process(clientinfo *ci)
@@ -1894,7 +1893,7 @@ if(actor->state.spreefrags == spreemessages[i].frags) out(ECHO_SERV, "\f0%s \f7%
  if(curtime)
  {
  updateBanner();
- loopv(sents) if(sents[i].spawntime) // spawn entities when timer reached
+ loopv(sents) if(sents[i].spawntime) //spawn entities when timer reached
  {
  int oldtime = sents[i].spawntime;
  sents[i].spawntime -= curtime;
@@ -1978,6 +1977,7 @@ if(actor->state.spreefrags == spreemessages[i].frags) out(ECHO_SERV, "\f0%s \f7%
  if(total - unsent < min(total, 4)) return;
  crcs.sort(crcinfo::compare);
  string msg;
+ //Modified Map 
  loopv(clients)
  {
  clientinfo *ci = clients[i];
@@ -2006,6 +2006,7 @@ if(actor->state.spreefrags == spreemessages[i].frags) out(ECHO_SERV, "\f0%s \f7%
  sendf(ci->clientnum, 1, "ri5s", N_SERVINFO, ci->clientnum, PROTOCOL_VERSION, ci->sessionid, serverpass[0] ? 1 : 0, serverdesc);
  }
 
+ //Empty Server
  void noclients()
  {
  aiman::clearai();
@@ -2218,7 +2219,7 @@ savescore(ci);
  mapdata = opentempfile("mapdata", "w+b");
  if(!mapdata) { sendf(sender, 1, "ris", N_SERVMSG, "\f3Error: \f7Failed to open temporary file for map"); return; }
  mapdata->write(data, len);
- defformatstring(msg)("\f0%s \f7uploaded a map to the server; type \f2\"/getmap\" \f7to receive it", colorname(ci));
+ defformatstring(msg)("\f0%s \f7uploaded a map to the server, type \f2\"/getmap\" \f7to download it", colorname(ci));
  sendservmsg(msg);
 out(ECHO_CONSOLE, "%s uploaded map \"%s\" to the server", colorname(ci), smapname);
  }
@@ -2278,9 +2279,9 @@ out(ECHO_CONSOLE, "%s uploaded map \"%s\" to the server", colorname(ci), smapnam
          GeoIP *gi;
          gi = GeoIP_open("./GeoIP.dat",GEOIP_STANDARD);
          defformatstring(ip)("%s", GeoIP_country_name_by_name(gi, ci->ip));
-         if(!strcmp("(null)", ip)){ //if GeoIP returns null
+         if(!strcmp("(null)", ip)){ 
              out(ECHO_SERV, "\f0%s \f7connected from an \f4Unknown Location", colorname(ci), ci->ip); 
-             out(ECHO_MASTER, "\f0%s \f7:(\f4%s\f7)", colorname(ci), ci->ip); //only tell master IP of client
+             out(ECHO_MASTER, "\f0%s \f7(\f4%s\f7)", colorname(ci), ci->ip); //only tell master IP of client
              irc.speak("%s (%s) connected from an Unknown Location", colorname(ci), ci->ip);
          }else{
              out(ECHO_SERV, "\f0%s \f7connected from \f2%s", colorname(ci), ip);
