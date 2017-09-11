@@ -4,7 +4,9 @@ _  / / /_____ \ _  _ \__  ___/__ | / /
 / /_/ / ____/ / /  __/_  /    __ |/ / 
 \___\_\ /____/  \___/ /_/     _____/  
                                                                                                                                          
-8.5 MBS of unbelievable speed, 30+ Added Commands, IRC Bot, server log, Player location by IP; instructive, easy setup and straightforward server management tools, updated frequently.  
+8.5 MBS of unbelievable speed, 30+ Added Commands, IRC Bot, server log, Player location by IP; instructive, easy setup and straightforward server management tools, updated frequently. 
+
+*UPDATE* QServ has been ported to collect, a new edition of the game: https://github.com/deathstar/QServCollect
 
 Wiki (Help): https://github.com/deathstar/QServ/wiki
 Configuration & server setup: https://github.com/deathstar/QServ/wiki/Configuration
